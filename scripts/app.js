@@ -1,20 +1,30 @@
 import Leaflet from 'leaflet';
 import googleMutant from "leaflet.gridlayer.googlemutant";
+import { bounds } from './boundaries';
 
 window.addEventListener('load', init, false);
 
 function init() {
-  initMap();
+  const boundaries = bounds;
 
-  function initMap() {
-    let map = new google.maps.Map(document.getElementById('map'), {
-      center: {lng: -73.8506199987954, lat: 40.903125000541245},
-      zoom: 12,
-    });
+  const mapOpts = {
+    center: {lng: -73.8506199987954, lat: 40.903125000541245},
+    zoom: 12,
   }
-  const roads = L.gridLayer.googleMutant({
-  	type: 'roadmap'	// valid values are 'roadmap', 'satellite', 'terrain' and 'hybrid'
-  }).addTo(map);
+
+  const map = new google.maps.Map(document.getElementById('map'), mapOpts);
+
+  // const map = L.map('map', mapOpts);
+  // // .setView([0,0],0);
+  //
+  // const roadMutant = L.gridLayer.googleMutant({
+	// 		maxZoom: 24,
+	// 		type:'roadmap'
+	// 	}).addTo(map);
+  //
+  // L.geoJSON(boundaries).addTo(map);
+
+  const manhattan = boundaries.features[0].geometry.coordinates;
 
   fetch('https://data.cityofnewyork.us/api/views/kk4q-3rt2/rows.json')
     .then(res => receiveData(res))
@@ -59,6 +69,9 @@ function init() {
 
   }
 
-}
+  google.maps.event.addListener(map, 'click', function(event) {
+    // console.log(google.maps.geometry.poly.containsLocation(event.latLng, manhattan));
+    console.log(manhattan);
+  });
 
-// https://data.cityofnewyork.us/api/views/7t3b-ywvw/rows.json
+}

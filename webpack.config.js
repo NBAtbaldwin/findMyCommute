@@ -10,11 +10,18 @@ module.exports = {
     rules: [
       {
         exclude: /(node_modules)/,
-      }
+      },
+       {
+         test: /\.json$/,
+         exclude: /(node_modules)/,
+         use: {
+           loader: 'json-loader',
+         },
+       },
     ]
   },
   devtool: 'source-map',
   resolve: {
-    extensions: ['.js', '*']
+    extensions: ['.js', '*', '.json']
   }
 };
