@@ -14530,9 +14530,9 @@ function init() {
     stopsHash = stopsHash;
 
     google.maps.event.addListener(map, 'click', function(event) {
-      Object(_transit_util__WEBPACK_IMPORTED_MODULE_4__["fetchCommuteTime"])(stopsHash, event.latLng);
+      let coords = Object(_transit_util__WEBPACK_IMPORTED_MODULE_4__["parseCoords"])("(-74.0277171 40.7386606)");
+      Object(_transit_util__WEBPACK_IMPORTED_MODULE_4__["fetchCommuteTime"])(stopsHash, coords, 55);
     });
-
 
   }
 
@@ -14670,13 +14670,12 @@ const locationFilter = (polygons, stop) => {
   polygons.forEach((poly, idx) => {
     google.maps.geometry.poly.containsLocation(stop, poly[boroughs[idx]]) ? borough = boroughs[idx] : null
   })
-  // console.log(borough)
   return borough
 }
 
 const getCommuteTime = (originHash, destination, service, display, ) => {
     service.route({
-    origin: parseCoords(originHash.queens[0].lngLat),
+    origin: parseCoords(originHash.brooklyn[0].lngLat),
     destination: destination,
     travelMode: google.maps.TravelMode['TRANSIT'],
   }, function(response, status) {
@@ -14689,14 +14688,21 @@ const getCommuteTime = (originHash, destination, service, display, ) => {
   });
 }
 
-const filterByTime = (response, time) => {
-  
+const filterByTime = (response, time, originHash) => {
+  const matches = [];
+  time = time * 60;
+  response.forEach((row, idx) => {
+    if (row.elements[0].duration.value <= time) {
+      matches.push(originHash.brooklyn[idx])
+    }
+  });
+  return matches;
 }
 
 const makeMatrixUrl = (originHash, destination) => {
   let originQuery = ``;
-  originHash.queens.forEach((subwayStop, idx) => {
-    if (idx !== originHash.queens.length - 1) {
+  originHash.forEach((subwayStop, idx) => {
+    if (idx !== originHash.length - 1) {
       originQuery += `${parseUrlCoords(subwayStop.lngLat)}|`
     } else {
       originQuery += `${parseUrlCoords(subwayStop.lngLat)}`
@@ -14706,18 +14712,39 @@ const makeMatrixUrl = (originHash, destination) => {
   return `https://maps.googleapis.com/maps/api/distancematrix/json?&origins=${originQuery}&destinations=${destination}&mode=transit&key=${Object(_key__WEBPACK_IMPORTED_MODULE_0__["myKey"])()}`;
 }
 
-const fetchCommuteTime = (originHash, destination) => {
-  const qString = makeMatrixUrl(originHash, destination);
-  console.log(qString);
-  fetch(qString)
-    .then(res => {
-      return res.json();
-    })
-    .then(res => console.log(res))
+const fetchCommuteTime = (originHash, destination, time) => {
+  if (originHash.brooklyn.length > 100) {
+    let halfBk = originHash.brooklyn.splice(100);
+    const qString2 = makeMatrixUrl(halfBk, destination);
+    const qString1 = makeMatrixUrl(originHash.brooklyn, destination);
+    originHash.brooklyn = originHash.brooklyn.concat(halfBk);
+    fetch(qString1)
+      .then(res1 => {
+        return res1.json();
+      })
+      .then(res1 => {
+        fetch(qString2)
+          .then(res2 => {
+            return res2.json();
+          })
+          .then(res2 => {
+            console.log(filterByTime(res1.rows.concat(res2.rows), time, originHash))
+          })
+      })
+  } else {
+    const qString = makeMatrixUrl(originHash.brooklyn, destination);
+    console.log(qString);
+    fetch(qString)
+      .then(res => {
+        return res.json();
+      })
+      .then(res => {
+        debugger;
+        console.log(filterByTime(res.rows, time, originHash));
+      })
+  }
+
 }
-
-
-// https://maps.googleapis.com/maps/api/distancematrix/xml?origins=Vancouver+BC|Seattle&destinations=San+Francisco|Vancouver+BC&mode=bicycling&language=fr-FR&key=YOUR_API_KEY
 
 
 /***/ })

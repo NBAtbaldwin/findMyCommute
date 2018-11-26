@@ -78,9 +78,9 @@ function init() {
     stopsHash = stopsHash;
 
     google.maps.event.addListener(map, 'click', function(event) {
-      fetchCommuteTime(stopsHash, event.latLng);
+      let coords = parseCoords("(-74.0277171 40.7386606)");
+      fetchCommuteTime(stopsHash, coords, 55);
     });
-
 
   }
 
