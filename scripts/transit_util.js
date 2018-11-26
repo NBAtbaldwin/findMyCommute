@@ -1,3 +1,5 @@
+import { myKey } from './key'
+
 export const parseCoords = (str) => {
   str = str.split(" ");
   let lat = parseFloat(str[0].split("(")[1])
@@ -6,7 +8,18 @@ export const parseCoords = (str) => {
   return latLng;
 }
 
+const parseUrlCoords = (str) => {
+  str = str.split(" ");
+  let lng = parseFloat(str[0].split("(")[1])
+  let lat = parseFloat(str[1].split(")")[0])
+  return `${lat},${lng}`;
+}
 
+const parseUrlCoordsLatLng = (latLng) => {
+  let lat = latLng.lat();
+  let lng = latLng.lng();
+  return `${lat},${lng}`;
+}
 
 export const locationFilter = (polygons, stop) => {
   stop = parseCoords(stop);
@@ -34,6 +47,32 @@ export const getCommuteTime = (originHash, destination, service, display, ) => {
   });
 }
 
-export const fetchCommuteTime = () => {
+const filterByTime = (response, time) => {
   
 }
+
+const makeMatrixUrl = (originHash, destination) => {
+  let originQuery = ``;
+  originHash.queens.forEach((subwayStop, idx) => {
+    if (idx !== originHash.queens.length - 1) {
+      originQuery += `${parseUrlCoords(subwayStop.lngLat)}|`
+    } else {
+      originQuery += `${parseUrlCoords(subwayStop.lngLat)}`
+    }
+  });
+  destination = parseUrlCoordsLatLng(destination)
+  return `https://maps.googleapis.com/maps/api/distancematrix/json?&origins=${originQuery}&destinations=${destination}&mode=transit&key=${myKey()}`;
+}
+
+export const fetchCommuteTime = (originHash, destination) => {
+  const qString = makeMatrixUrl(originHash, destination);
+  console.log(qString);
+  fetch(qString)
+    .then(res => {
+      return res.json();
+    })
+    .then(res => console.log(res))
+}
+
+
+// https://maps.googleapis.com/maps/api/distancematrix/xml?origins=Vancouver+BC|Seattle&destinations=San+Francisco|Vancouver+BC&mode=bicycling&language=fr-FR&key=YOUR_API_KEY
