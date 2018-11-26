@@ -1,5 +1,3 @@
-import Leaflet from 'leaflet';
-import googleMutant from "leaflet.gridlayer.googlemutant";
 import { bounds } from './boundaries';
 import { toLatLng, createPolgygons } from './latLngHelper';
 import { locationFilter, parseCoords, fetchCommuteTime } from './transit_util';
@@ -78,8 +76,7 @@ function init() {
     stopsHash = stopsHash;
 
     google.maps.event.addListener(map, 'click', function(event) {
-      let coords = parseCoords("(-74.0277171 40.7386606)");
-      fetchCommuteTime(stopsHash, coords, 55);
+      fetchCommuteTime(stopsHash, event.latLng, 55);
     });
 
   }

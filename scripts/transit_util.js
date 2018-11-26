@@ -31,27 +31,27 @@ export const locationFilter = (polygons, stop) => {
   return borough
 }
 
-export const getCommuteTime = (originHash, destination, service, display, ) => {
-    service.route({
-    origin: parseCoords(originHash.brooklyn[0].lngLat),
-    destination: destination,
-    travelMode: google.maps.TravelMode['TRANSIT'],
-  }, function(response, status) {
-    if (status === 'OK') {
-      display.setDirections(response);
-      console.log(display.getDirections().routes[0].legs[0].duration.text)
-    } else {
-      alert('Could not display directions due to: ' + status);
-    }
-  });
-}
+// export const getCommuteTime = (originHash, destination, service, display, ) => {
+//     service.route({
+//     origin: parseCoords(originHash.brooklyn[0].lngLat),
+//     destination: destination,
+//     travelMode: google.maps.TravelMode['TRANSIT'],
+//   }, function(response, status) {
+//     if (status === 'OK') {
+//       display.setDirections(response);
+//       console.log(display.getDirections().routes[0].legs[0].duration.text)
+//     } else {
+//       alert('Could not display directions due to: ' + status);
+//     }
+//   });
+// }
 
-const filterByTime = (response, time, originHash) => {
+const filterByTime = (response, time, originHash, borough) => {
   const matches = [];
   time = time * 60;
   response.forEach((row, idx) => {
     if (row.elements[0].duration.value <= time) {
-      matches.push(originHash.brooklyn[idx])
+      matches.push(originHash[borough][idx])
     }
   });
   return matches;
@@ -70,12 +70,12 @@ const makeMatrixUrl = (originHash, destination) => {
   return `https://maps.googleapis.com/maps/api/distancematrix/json?&origins=${originQuery}&destinations=${destination}&mode=transit&key=${myKey()}`;
 }
 
-export const fetchCommuteTime = (originHash, destination, time) => {
-  if (originHash.brooklyn.length > 100) {
-    let halfBk = originHash.brooklyn.splice(100);
-    const qString2 = makeMatrixUrl(halfBk, destination);
-    const qString1 = makeMatrixUrl(originHash.brooklyn, destination);
-    originHash.brooklyn = originHash.brooklyn.concat(halfBk);
+export const fetchCommuteTime = (originHash, destination, time, borough) => {
+  if (originHash[borough].length > 100) {
+    let halfBorough = originHash[borough].splice(100);
+    const qString2 = makeMatrixUrl(halfBorough, destination);
+    const qString1 = makeMatrixUrl(originHash[borough], destination);
+    originHash[borough] = originHash[borough].concat(halfBorough);
     fetch(qString1)
       .then(res1 => {
         return res1.json();
@@ -86,19 +86,17 @@ export const fetchCommuteTime = (originHash, destination, time) => {
             return res2.json();
           })
           .then(res2 => {
-            console.log(filterByTime(res1.rows.concat(res2.rows), time, originHash))
+            console.log(filterByTime(res1.rows.concat(res2.rows), time, originHash, borough))
           })
       })
   } else {
-    const qString = makeMatrixUrl(originHash.brooklyn, destination);
-    console.log(qString);
+    const qString = makeMatrixUrl(originHash[borough], destination);
     fetch(qString)
       .then(res => {
         return res.json();
       })
       .then(res => {
-        debugger;
-        console.log(filterByTime(res.rows, time, originHash));
+        console.log(filterByTime(res.rows, time, originHash, borough));
       })
   }
 
