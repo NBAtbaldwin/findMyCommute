@@ -3,3 +3,6 @@ node_modules/
 .DS_Store
 npm-debug.log
 index.html
+bundle.js
+bundle.js.map
+key.js

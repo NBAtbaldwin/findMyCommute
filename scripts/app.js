@@ -1,11 +1,20 @@
 import Leaflet from 'leaflet';
 import googleMutant from "leaflet.gridlayer.googlemutant";
 import { bounds } from './boundaries';
+import { toLatLng, createPolgygons } from './latLngHelper';
+import { locationFilter, parseCoords, getCommuteTime } from './transit_util';
 
 window.addEventListener('load', init, false);
 
 function init() {
   const boundaries = bounds;
+  const stopsHash= {
+    "bronx": [],
+    "brooklyn": [],
+    "manhattan": [],
+    "queens": [],
+    "staten_island": [],
+  };
 
   const mapOpts = {
     center: {lng: -73.8506199987954, lat: 40.903125000541245},
@@ -14,21 +23,21 @@ function init() {
 
   const map = new google.maps.Map(document.getElementById('map'), mapOpts);
 
-  // const map = L.map('map', mapOpts);
-  // // .setView([0,0],0);
-  //
-  // const roadMutant = L.gridLayer.googleMutant({
-	// 		maxZoom: 24,
-	// 		type:'roadmap'
-	// 	}).addTo(map);
-  //
-  // L.geoJSON(boundaries).addTo(map);
+  const service = new google.maps.DirectionsService;
 
-  const manhattan = boundaries.features[0].geometry.coordinates;
+  const display = new google.maps.DirectionsRenderer({
+    map: map,
+  });
+
+  const polygons = [];
+
+  createPolgygons(boundaries, polygons)
 
   fetch('https://data.cityofnewyork.us/api/views/kk4q-3rt2/rows.json')
     .then(res => receiveData(res))
     .then(res => handleData(res))
+    .then(res => commuteFinder(res))
+
 
   function receiveData(res) {
     return res.json();
@@ -36,42 +45,44 @@ function init() {
 
   function handleData(res) {
     const stopsArr = res.data;
-    let stopsHash= {};
     stopsArr.forEach(stop => {
-      let key = stop[11].slice(6);
-      stopsHash[key] = {};
+      let coords = stop[11].slice(6);
+      let stopObj = {};
       stop.forEach((listItem, idx) => {
         switch (idx) {
           case 0:
-            stopsHash[key].id = listItem
+            stopObj.id = listItem;
             break;
           case 10:
-            stopsHash[key].subwayStop = listItem
+            stopObj.subwayStop = listItem;
             break;
           case 11:
-            stopsHash[key].lngLat = listItem
+            stopObj.lngLat = coords;
             break;
           case 12:
-            stopsHash[key].trains = listItem
+            stopObj.trains = listItem;
             break;
           case 13:
-            stopsHash[key].info = listItem
+            stopObj.info = listItem;
             break;
           default:
             break
         }
       })
+      stopsHash[locationFilter(polygons, coords)].push(stopObj)
     })
-    console.log(stopsHash);
+    return stopsHash
   }
 
-  function locationFilter() {
+  function commuteFinder(stopsHash) {
+    stopsHash = stopsHash;
+
+    google.maps.event.addListener(map, 'click', function(event) {
+      getCommuteTime(stopsHash, event.latLng, service, display);
+    });
+
 
   }
 
-  google.maps.event.addListener(map, 'click', function(event) {
-    // console.log(google.maps.geometry.poly.containsLocation(event.latLng, manhattan));
-    console.log(manhattan);
-  });
 
 }
