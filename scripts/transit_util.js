@@ -1,4 +1,5 @@
 import { myKey } from './key';
+import { merge } from 'lodash';
 
 export const parseCoords = (str) => {
   str = str.split(" ");
@@ -50,10 +51,13 @@ const filterByTime = (response, time, originHash, borough) => {
   const matches = [];
   time = time * 60;
   response.forEach((row, idx) => {
-    if (row.elements[0].duration.value <= time) {
-      matches.push(originHash[borough][idx])
+    let commuteTime = row.elements[0].duration.value;
+    if (commuteTime <= time) {
+      let boroughWithTime = merge({}, originHash[borough][idx], {commuteTime: commuteTime});
+      matches.push(boroughWithTime);
     }
   });
+  console.log(matches);
   return matches;
 }
 
@@ -113,4 +117,30 @@ export const markersFromLocations = (locations, map, markers) => {
     markers.push(marker)
   });
   return markers
+}
+
+const displayCircle = (marker, time, map) => {
+  let circle = new google.maps.Circle({
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: '#FF0000',
+    fillOpacity: 0.35,
+    map: map,
+    center: {lat: marker.position.lat(), lng: marker.position.lng()},
+    radius: 3,
+  });
+  return circle;
+}
+
+const walkingDistance = () => {
+
+}
+
+export const genCircles = (circles, markers, locations, time, map) => {
+  markers.forEach(mark => {
+    let circle = displayCircle(mark, time, map);
+    circles.push(circle);
+  })
+
 }

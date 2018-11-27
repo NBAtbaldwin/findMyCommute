@@ -23,6 +23,7 @@ class CommuteMap extends React.Component {
       borough: 'brooklyn',
       markers: [],
       workMarker: null,
+      circles: null,
     }
     this.handleSubmit = this.handleSubmit.bind(this);
     this.updateField = this.updateField.bind(this);
@@ -75,7 +76,12 @@ class CommuteMap extends React.Component {
         this.clearMarkers();
         let markers = [];
         TransitUtil.markersFromLocations(locations, this.map, markers);
-        this.setState({markers: markers})
+        this.setState({markers: markers});
+        return locations
+      })
+      .then(locations => {
+        let circles = [];
+        TransitUtil.genCircles(circles, this.state.markers, locations, this.state.time, this.map)
       })
   }
 
