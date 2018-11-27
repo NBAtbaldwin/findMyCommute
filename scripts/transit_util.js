@@ -1,4 +1,4 @@
-import { myKey } from './key'
+import { myKey } from './key';
 
 export const parseCoords = (str) => {
   str = str.split(" ");
@@ -71,33 +71,46 @@ const makeMatrixUrl = (originHash, destination) => {
 }
 
 export const fetchCommuteTime = (originHash, destination, time, borough) => {
-  if (originHash[borough].length > 100) {
-    let halfBorough = originHash[borough].splice(100);
-    const qString2 = makeMatrixUrl(halfBorough, destination);
-    const qString1 = makeMatrixUrl(originHash[borough], destination);
-    originHash[borough] = originHash[borough].concat(halfBorough);
-    fetch(qString1)
+  return new Promise(resolve => {
+    if (originHash[borough].length > 100) {
+      let halfBorough = originHash[borough].splice(100);
+      const qString2 = makeMatrixUrl(halfBorough, destination);
+      const qString1 = makeMatrixUrl(originHash[borough], destination);
+      originHash[borough] = originHash[borough].concat(halfBorough);
+      fetch(qString1)
       .then(res1 => {
         return res1.json();
       })
       .then(res1 => {
         fetch(qString2)
-          .then(res2 => {
-            return res2.json();
-          })
-          .then(res2 => {
-            console.log(filterByTime(res1.rows.concat(res2.rows), time, originHash, borough))
-          })
+        .then(res2 => {
+          return res2.json();
+        })
+        .then(res2 => {
+          resolve(filterByTime(res1.rows.concat(res2.rows), time, originHash, borough));
+        })
       })
-  } else {
-    const qString = makeMatrixUrl(originHash[borough], destination);
-    fetch(qString)
+    } else {
+      const qString = makeMatrixUrl(originHash[borough], destination);
+      fetch(qString)
       .then(res => {
         return res.json();
       })
       .then(res => {
-        console.log(filterByTime(res.rows, time, originHash, borough));
+        resolve(filterByTime(res.rows, time, originHash, borough));
       })
-  }
+    }
 
+  })
+}
+
+export const markersFromLocations = (locations, map, markers) => {
+  locations.forEach(loc => {
+    let marker = new google.maps.Marker({
+      position: parseCoords(loc.lngLat),
+      map: map,
+    });
+    markers.push(marker)
+  });
+  return markers
 }

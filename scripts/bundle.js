@@ -23175,7 +23175,9 @@ function (_React$Component) {
       },
       workPlace: _transit_util__WEBPACK_IMPORTED_MODULE_4__["parseCoords"]('40.7447086 -74.0464601'),
       time: 30,
-      borough: 'brooklyn'
+      borough: 'brooklyn',
+      markers: [],
+      workMarker: null
     };
     _this.handleSubmit = _this.handleSubmit.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     _this.updateField = _this.updateField.bind(_assertThisInitialized(_assertThisInitialized(_this)));
@@ -23216,37 +23218,65 @@ function (_React$Component) {
       var _this3 = this;
 
       google.maps.event.addListener(this.map, 'click', function (event) {
+        _this3.state.workMarker ? _this3.state.workMarker.setMap(null) : null;
+
         _this3.setState({
           workPlace: event.latLng
         }, function () {
           console.log(_this3.state);
+          var marker = new google.maps.Marker({
+            position: event.latLng,
+            map: _this3.map
+          });
+
+          _this3.setState({
+            workMarker: marker
+          });
         });
       });
     }
   }, {
     key: "handleSubmit",
     value: function handleSubmit(e) {
+      var _this4 = this;
+
       e.preventDefault();
-      _transit_util__WEBPACK_IMPORTED_MODULE_4__["fetchCommuteTime"](this.state.stopsHash, this.state.workPlace, this.state.time, this.state.borough);
+      _transit_util__WEBPACK_IMPORTED_MODULE_4__["fetchCommuteTime"](this.state.stopsHash, this.state.workPlace, this.state.time, this.state.borough).then(function (locations) {
+        _this4.clearMarkers();
+
+        var markers = [];
+        _transit_util__WEBPACK_IMPORTED_MODULE_4__["markersFromLocations"](locations, _this4.map, markers);
+
+        _this4.setState({
+          markers: markers
+        });
+      });
     }
   }, {
     key: "updateField",
     value: function updateField(field) {
-      var _this4 = this;
+      var _this5 = this;
 
       return function (e) {
-        _this4.setState(_defineProperty({}, field, e.currentTarget.value));
+        _this5.setState(_defineProperty({}, field, e.currentTarget.value));
       };
+    }
+  }, {
+    key: "clearMarkers",
+    value: function clearMarkers() {
+      for (var i = 0; i < this.state.markers.length; i++) {
+        this.state.markers[i].setMap(null);
+      }
     }
   }, {
     key: "render",
     value: function render() {
-      var _this5 = this;
+      var _this6 = this;
 
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         id: "map-container",
         ref: function ref(map) {
-          return _this5.mapNode = map;
+          return _this6.mapNode = map;
         }
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
         onSubmit: this.handleSubmit
@@ -23400,7 +23430,7 @@ var createStopsHash = function createStopsHash(res, stopsHash, polygons) {
 /*!*********************************!*\
   !*** ./scripts/transit_util.js ***!
   \*********************************/
-/*! exports provided: parseCoords, locationFilter, fetchCommuteTime */
+/*! exports provided: parseCoords, locationFilter, fetchCommuteTime, markersFromLocations */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -23408,6 +23438,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parseCoords", function() { return parseCoords; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "locationFilter", function() { return locationFilter; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fetchCommuteTime", function() { return fetchCommuteTime; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "markersFromLocations", function() { return markersFromLocations; });
 /* harmony import */ var _key__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./key */ "./scripts/key.js");
 
 var parseCoords = function parseCoords(str) {
@@ -23479,28 +23510,40 @@ var makeMatrixUrl = function makeMatrixUrl(originHash, destination) {
 };
 
 var fetchCommuteTime = function fetchCommuteTime(originHash, destination, time, borough) {
-  if (originHash[borough].length > 100) {
-    var halfBorough = originHash[borough].splice(100);
-    var qString2 = makeMatrixUrl(halfBorough, destination);
-    var qString1 = makeMatrixUrl(originHash[borough], destination);
-    originHash[borough] = originHash[borough].concat(halfBorough);
-    fetch(qString1).then(function (res1) {
-      return res1.json();
-    }).then(function (res1) {
-      fetch(qString2).then(function (res2) {
-        return res2.json();
-      }).then(function (res2) {
-        console.log(filterByTime(res1.rows.concat(res2.rows), time, originHash, borough));
+  return new Promise(function (resolve) {
+    if (originHash[borough].length > 100) {
+      var halfBorough = originHash[borough].splice(100);
+      var qString2 = makeMatrixUrl(halfBorough, destination);
+      var qString1 = makeMatrixUrl(originHash[borough], destination);
+      originHash[borough] = originHash[borough].concat(halfBorough);
+      fetch(qString1).then(function (res1) {
+        return res1.json();
+      }).then(function (res1) {
+        fetch(qString2).then(function (res2) {
+          return res2.json();
+        }).then(function (res2) {
+          resolve(filterByTime(res1.rows.concat(res2.rows), time, originHash, borough));
+        });
       });
+    } else {
+      var qString = makeMatrixUrl(originHash[borough], destination);
+      fetch(qString).then(function (res) {
+        return res.json();
+      }).then(function (res) {
+        resolve(filterByTime(res.rows, time, originHash, borough));
+      });
+    }
+  });
+};
+var markersFromLocations = function markersFromLocations(locations, map, markers) {
+  locations.forEach(function (loc) {
+    var marker = new google.maps.Marker({
+      position: parseCoords(loc.lngLat),
+      map: map
     });
-  } else {
-    var qString = makeMatrixUrl(originHash[borough], destination);
-    fetch(qString).then(function (res) {
-      return res.json();
-    }).then(function (res) {
-      console.log(filterByTime(res.rows, time, originHash, borough));
-    });
-  }
+    markers.push(marker);
+  });
+  return markers;
 };
 
 /***/ }),

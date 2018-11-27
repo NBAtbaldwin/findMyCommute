@@ -21,6 +21,8 @@ class CommuteMap extends React.Component {
       workPlace: TransitUtil.parseCoords(('40.7447086 -74.0464601')),
       time: 30,
       borough: 'brooklyn',
+      markers: [],
+      workMarker: null,
     }
     this.handleSubmit = this.handleSubmit.bind(this);
     this.updateField = this.updateField.bind(this);
@@ -52,8 +54,16 @@ class CommuteMap extends React.Component {
 
   clickListener() {
     google.maps.event.addListener(this.map, 'click', (event) => {
+      this.state.workMarker ? this.state.workMarker.setMap(null) : null;
       this.setState({workPlace: event.latLng}, () => {
         console.log(this.state)
+        let marker = new google.maps.Marker({
+          position: event.latLng,
+          map: this.map,
+        });
+        this.setState({
+          workMarker: marker,
+        })
       })
     });
   }
@@ -61,12 +71,24 @@ class CommuteMap extends React.Component {
   handleSubmit(e) {
     e.preventDefault();
     TransitUtil.fetchCommuteTime(this.state.stopsHash, this.state.workPlace, this.state.time, this.state.borough)
+      .then(locations => {
+        this.clearMarkers();
+        let markers = [];
+        TransitUtil.markersFromLocations(locations, this.map, markers);
+        this.setState({markers: markers})
+      })
   }
 
   updateField(field) {
     return (e) => {
       this.setState({[field]: e.currentTarget.value});
     };
+  }
+
+  clearMarkers() {
+    for (let i = 0; i < this.state.markers.length; i++) {
+      this.state.markers[i].setMap(null);
+    }
   }
 
   render() {
