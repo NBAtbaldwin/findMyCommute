@@ -57,7 +57,6 @@ const filterByTime = (response, time, originHash, borough) => {
       matches.push(boroughWithTime);
     }
   });
-  console.log(matches);
   return matches;
 }
 
@@ -113,6 +112,7 @@ export const markersFromLocations = (locations, map, markers) => {
     let marker = new google.maps.Marker({
       position: parseCoords(loc.lngLat),
       map: map,
+      title: loc.subwayStop,
     });
     markers.push(marker)
   });
@@ -128,7 +128,7 @@ const displayCircle = (marker, time, map) => {
     fillOpacity: 0.35,
     map: map,
     center: {lat: marker.position.lat(), lng: marker.position.lng()},
-    radius: 3,
+    radius: time,
   });
   return circle;
 }
@@ -138,9 +138,10 @@ const walkingDistance = () => {
 }
 
 export const genCircles = (circles, markers, locations, time, map) => {
-  markers.forEach(mark => {
-    let circle = displayCircle(mark, time, map);
+  markers.forEach((mark, idx) => {
+    let subwayTime = ((time * 60) - locations[idx].commuteTime) * 1.4;
+    let circle = displayCircle(mark, subwayTime, map);
     circles.push(circle);
   })
-
+  return circles;
 }

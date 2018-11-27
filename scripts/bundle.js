@@ -40418,7 +40418,7 @@ function (_React$Component) {
 
       e.preventDefault();
       _transit_util__WEBPACK_IMPORTED_MODULE_4__["fetchCommuteTime"](this.state.stopsHash, this.state.workPlace, this.state.time, this.state.borough).then(function (locations) {
-        _this4.clearMarkers();
+        _this4.clearItems("markers");
 
         var markers = [];
         _transit_util__WEBPACK_IMPORTED_MODULE_4__["markersFromLocations"](locations, _this4.map, markers);
@@ -40429,8 +40429,14 @@ function (_React$Component) {
 
         return locations;
       }).then(function (locations) {
+        _this4.clearItems("circles");
+
         var circles = [];
         _transit_util__WEBPACK_IMPORTED_MODULE_4__["genCircles"](circles, _this4.state.markers, locations, _this4.state.time, _this4.map);
+
+        _this4.setState({
+          circles: circles
+        });
       });
     }
   }, {
@@ -40443,10 +40449,12 @@ function (_React$Component) {
       };
     }
   }, {
-    key: "clearMarkers",
-    value: function clearMarkers() {
-      for (var i = 0; i < this.state.markers.length; i++) {
-        this.state.markers[i].setMap(null);
+    key: "clearItems",
+    value: function clearItems(itemType) {
+      if (!this.state[itemType]) return;
+
+      for (var i = 0; i < this.state[itemType].length; i++) {
+        this.state[itemType][i].setMap(null);
       }
     }
   }, {
@@ -40683,7 +40691,6 @@ var filterByTime = function filterByTime(response, time, originHash, borough) {
       matches.push(boroughWithTime);
     }
   });
-  console.log(matches);
   return matches;
 };
 
@@ -40730,7 +40737,8 @@ var markersFromLocations = function markersFromLocations(locations, map, markers
   locations.forEach(function (loc) {
     var marker = new google.maps.Marker({
       position: parseCoords(loc.lngLat),
-      map: map
+      map: map,
+      title: loc.subwayStop
     });
     markers.push(marker);
   });
@@ -40749,7 +40757,7 @@ var displayCircle = function displayCircle(marker, time, map) {
       lat: marker.position.lat(),
       lng: marker.position.lng()
     },
-    radius: 3
+    radius: time
   });
   return circle;
 };
@@ -40757,10 +40765,12 @@ var displayCircle = function displayCircle(marker, time, map) {
 var walkingDistance = function walkingDistance() {};
 
 var genCircles = function genCircles(circles, markers, locations, time, map) {
-  markers.forEach(function (mark) {
-    var circle = displayCircle(mark, time, map);
+  markers.forEach(function (mark, idx) {
+    var subwayTime = (time * 60 - locations[idx].commuteTime) * 1.4;
+    var circle = displayCircle(mark, subwayTime, map);
     circles.push(circle);
   });
+  return circles;
 };
 
 /***/ }),

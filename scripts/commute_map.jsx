@@ -73,15 +73,17 @@ class CommuteMap extends React.Component {
     e.preventDefault();
     TransitUtil.fetchCommuteTime(this.state.stopsHash, this.state.workPlace, this.state.time, this.state.borough)
       .then(locations => {
-        this.clearMarkers();
+        this.clearItems("markers");
         let markers = [];
         TransitUtil.markersFromLocations(locations, this.map, markers);
         this.setState({markers: markers});
         return locations
       })
       .then(locations => {
+        this.clearItems("circles");
         let circles = [];
-        TransitUtil.genCircles(circles, this.state.markers, locations, this.state.time, this.map)
+        TransitUtil.genCircles(circles, this.state.markers, locations, this.state.time, this.map);
+        this.setState({circles: circles})
       })
   }
 
@@ -91,9 +93,10 @@ class CommuteMap extends React.Component {
     };
   }
 
-  clearMarkers() {
-    for (let i = 0; i < this.state.markers.length; i++) {
-      this.state.markers[i].setMap(null);
+  clearItems(itemType) {
+    if (!this.state[itemType]) return;
+    for (let i = 0; i < this.state[itemType].length; i++) {
+      this.state[itemType][i].setMap(null);
     }
   }
 
