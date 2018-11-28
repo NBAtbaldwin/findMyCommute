@@ -5,7 +5,6 @@ import * as TransitUtil from './../transit_util';
 
 export const WorkMarker = ({coords, google, map, mapCenter}) => {
   if (coords) {
-    // let lngLat = TransitUtil.parseCoords(coords.lngLat);
     return(
       <>
         <Marker

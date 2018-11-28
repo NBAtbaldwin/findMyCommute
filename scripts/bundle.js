@@ -52890,7 +52890,6 @@ var WorkMarker = function WorkMarker(_ref) {
       mapCenter = _ref.mapCenter;
 
   if (coords) {
-    // let lngLat = TransitUtil.parseCoords(coords.lngLat);
     return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["Marker"], {
       google: google,
       map: map,
