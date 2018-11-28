@@ -5,6 +5,7 @@ import * as LatLngUtil from './latLngHelper';
 import * as TransitUtil from './transit_util';
 import Markers from './mapSubcomponents/markers';
 import Polygons from './mapSubcomponents/polygons';
+import WorkMarker from './mapSubcomponents/work_marker';
 
 export class CommuteMap extends React.Component {
   constructor(props) {
@@ -12,7 +13,9 @@ export class CommuteMap extends React.Component {
     this.state = {
       boroughPolygons: [],
       subwayStops: [],
+      workMarker: "",
     }
+    this.clickListener = this.clickListener.bind(this);
   }
 
   componentDidMount() {
@@ -31,11 +34,17 @@ export class CommuteMap extends React.Component {
     }
   }
 
+  clickListener(mapProps, map, clickEvent) {
+    this.setState({workMarker: clickEvent.latLng}, () => {
+      this.props.postCoords(clickEvent.latLng)
+    })
+  }
+
   render() {
     return(
       <Map
         google={this.props.google}
-        onDragend={this.centerMoved}
+        onClick={this.clickListener}
         style={MapUtil.style()}
         zoom={14}
         initialCenter={{
@@ -43,6 +52,7 @@ export class CommuteMap extends React.Component {
          lng: -74.0050261
          }}
         >
+        <WorkMarker coords={this.state.workMarker} />
         <Polygons boundaries={this.state.boroughPolygons} />
         <Markers coords={this.state.subwayStops} />
       </Map>

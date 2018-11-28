@@ -2,11 +2,11 @@ import React from 'react';
 import * as MapUtil from './util/map_util';
 import * as LatLngUtil from './latLngHelper';
 import * as TransitUtil from './transit_util';
-import CommuteMap from './commute_map';
+import CommuteMapContainer from './commute_map_container.js';
 import CommuteTable from './commute_table';
 import {GoogleApiWrapper} from 'google-maps-react';
 
-export class CommuteMapContainer extends React.Component {
+export class Home extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -14,37 +14,28 @@ export class CommuteMapContainer extends React.Component {
       nbhdPolygons: [],
       selectedSubwayStops: [],
       filteredSubwayStops: [],
-      time: 60,
+      time: 30,
       borough: 'Brooklyn',
-      workMarker: TransitUtil.parseCoords('(40.7447086 -74.0464601)'),
-      workPlace: TransitUtil.parseCoords('(-74.0464601 40.7447086)'),
+      workplace: null,
       data: null,
     }
     this.handleSubmit = this.handleSubmit.bind(this);
     this.updateField = this.updateField.bind(this);
   }
 
-  componentDidMount() {
-    // this.clickListener();
-  }
-
-  clickListener() {
-    google.maps.event.addListener(this.map, 'click', (event) => {
-      this.state.workMarker ? this.state.workMarker.setMap(null) : null;
-      this.setState({workPlace: event.latLng}, () => {
-        let marker = new google.maps.Marker({
-          position: event.latLng,
-          map: this.map,
-        });
-        this.setState({
-          workMarker: marker,
-        })
+  componentDidUpdate(prevProps) {
+    if (this.props.workplace !== prevProps.workplace) {
+      this.setState({
+        workplace: this.props.workplace,
       })
-    });
+    }
   }
 
   handleSubmit(e) {
     e.preventDefault();
+    if(!this.state.workplace) {
+      return;
+    }
     this.cleanUp();
     fetch(`https://data.cityofnewyork.us/resource/7t3b-ywvw.json?boro_name=${this.state.borough}`, {
       "$$app_token": `${process.env.NYC_KEY}`
@@ -65,7 +56,7 @@ export class CommuteMapContainer extends React.Component {
       })
     })
     .then(res => {
-      TransitUtil.fetchCommuteTime(this.state.selectedSubwayStops, this.state.workPlace, this.state.time, this.state.borough)
+      TransitUtil.fetchCommuteTime(this.state.selectedSubwayStops, this.state.workplace, this.state.time, this.state.borough)
         .then(locations => {
           this.setState({
             filteredSubwayStops: locations,
@@ -94,7 +85,7 @@ export class CommuteMapContainer extends React.Component {
       <div id="master-container">
         <main>
           <div id="map-container">
-            <CommuteMap polygon={this.state.boroughPolygon} subwayStops={this.state.filteredSubwayStops}/>
+            <CommuteMapContainer polygon={this.state.boroughPolygon} subwayStops={this.state.filteredSubwayStops}/>
           </div>
           <form onSubmit={this.handleSubmit}>
             <div>
@@ -110,7 +101,7 @@ export class CommuteMapContainer extends React.Component {
               <label>Max Desired Commute Time</label>
               <input onChange={this.updateField('time')} type="number" value={this.state.time} name="time" min="5" max="120" />
             </div>
-            <input type="hidden" value={this.state.workPlace} />
+            <input type="hidden" value={this.state.workplace} />
             <button type="submit" value="find-stops">Find stops</button>
           </form>
         </main>
@@ -124,4 +115,4 @@ export class CommuteMapContainer extends React.Component {
 
 export default GoogleApiWrapper({
   apiKey: (process.env.GAPI_KEY)
-})(CommuteMapContainer)
+})(Home)

@@ -1,6 +1,5 @@
 import { myKey } from './key';
 import { merge } from 'lodash';
-// import CommuteMapContainer from './commute_map_container';
 
 export const parseCoords = (str) => {
   str = str.split(" ");

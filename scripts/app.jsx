@@ -1,7 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import CommuteMapContainer from './commute_map_container'
+import Root from './root';
+import configureStore from './store/store';
 
 document.addEventListener("DOMContentLoaded", () => {
-  ReactDOM.render(<CommuteMapContainer />, root);
+  const preloadedState = {
+      map: {
+        workplace: null,
+      },
+    };
+  let store = configureStore(preloadedState);
+
+  ReactDOM.render(<Root store={store} />, root);
 });
