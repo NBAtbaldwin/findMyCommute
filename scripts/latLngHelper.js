@@ -20,16 +20,26 @@ export const toLatLng = (geoJ) => {
   return output
 }
 
-export const createPolgygon = (geoJ, borough, container) => {
-  container = [];
-  let boroughObj = {};
-  let path = toLatLng(geoJ[0].the_geom.coordinates);
-  boroughObj[borough] = new google.maps.Polygon({
+// export const createPolgygon = (geoJ, borough, container) => {
+//   container = [];
+//   let boroughObj = {};
+//   let path = toLatLng(geoJ[0].the_geom.coordinates);
+//   boroughObj[borough] = new google.maps.Polygon({
+//       paths: path,
+//     });
+//   container.push(boroughObj);
+//
+//   return container;
+// }
+
+const tempPolygon = (path) => {
+  return new google.maps.Polygon({
       paths: path,
     });
-  container.push(boroughObj);
+}
 
-  return container;
+export const createPolgygon = (geoJ, borough, container) => {
+  return toLatLng(geoJ[0].the_geom.coordinates);
 }
 
 export const receiveData = (res) => {
@@ -67,7 +77,8 @@ export const receiveData = (res) => {
 //   return stopsHash
 // }
 
-export const createBoroughStops = (res, selectedSubwayStops, polygon, borough) => {
+export const createBoroughStops = (res, selectedSubwayStops, boroughPolygon, borough) => {
+  const polygon = tempPolygon(boroughPolygon);
   const stopsArr = res.data;
   stopsArr.forEach(stop => {
     if (locationFilter(polygon, stop, borough)) {

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import CommuteMap from './commute_map'
+import CommuteMapContainer from './commute_map_container'
 
 document.addEventListener("DOMContentLoaded", () => {
-  ReactDOM.render(<CommuteMap />, root);
+  ReactDOM.render(<CommuteMapContainer />, root);
 });
