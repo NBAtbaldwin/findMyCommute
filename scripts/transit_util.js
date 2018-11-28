@@ -22,15 +22,12 @@ const parseUrlCoordsLatLng = (latLng) => {
   return `${lat},${lng}`;
 }
 
-export const locationFilter = (polygons, stop) => {
-  stop = parseCoords(stop);
-  const boroughs = ["manhattan", "bronx", "staten_island", "brooklyn", "queens"];
-  let borough;
-  polygons.forEach((poly, idx) => {
-    google.maps.geometry.poly.containsLocation(stop, poly[boroughs[idx]]) ? borough = boroughs[idx] : null
-  })
-  return borough
+export const locationFilter = (polygon, data, borough) => {
+  stop = parseCoords(data[11].slice(6));
+  return google.maps.geometry.poly.containsLocation(stop, polygon[0][borough]) ? true : false;
 }
+
+// return google.maps.geometry.poly.containsLocation(stop, polygon[0][borough]) ? true : false;
 
 // export const getCommuteTime = (originHash, destination, service, display, ) => {
 //     service.route({
@@ -47,17 +44,16 @@ export const locationFilter = (polygons, stop) => {
 //   });
 // }
 
-const filterByTime = (response, time, originHash, borough) => {
+const filterByTime = (response, time, originHash) => {
   const matches = [];
   time = time * 60;
   response.forEach((row, idx) => {
     let commuteTime = row.elements[0].duration.value;
     if (commuteTime <= time) {
-      let boroughWithTime = merge({}, originHash[borough][idx], {commuteTime: commuteTime});
+      let boroughWithTime = merge({}, originHash[idx], {commuteTime: commuteTime});
       matches.push(boroughWithTime);
     }
   });
-  console.log(matches);
   return matches;
 }
 
@@ -76,11 +72,11 @@ const makeMatrixUrl = (originHash, destination) => {
 
 export const fetchCommuteTime = (originHash, destination, time, borough) => {
   return new Promise(resolve => {
-    if (originHash[borough].length > 100) {
-      let halfBorough = originHash[borough].splice(100);
+    if (originHash.length > 100) {
+      let halfBorough = originHash.splice(100);
       const qString2 = makeMatrixUrl(halfBorough, destination);
-      const qString1 = makeMatrixUrl(originHash[borough], destination);
-      originHash[borough] = originHash[borough].concat(halfBorough);
+      const qString1 = makeMatrixUrl(originHash, destination);
+      originHash = originHash.concat(halfBorough);
       fetch(qString1)
       .then(res1 => {
         return res1.json();
@@ -95,7 +91,7 @@ export const fetchCommuteTime = (originHash, destination, time, borough) => {
         })
       })
     } else {
-      const qString = makeMatrixUrl(originHash[borough], destination);
+      const qString = makeMatrixUrl(originHash, destination);
       fetch(qString)
       .then(res => {
         return res.json();

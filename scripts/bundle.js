@@ -43724,17 +43724,12 @@ function (_React$Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(CommuteMap).call(this, props));
     _this.state = {
-      boroughPolygons: [],
-      stopsHash: {
-        "bronx": [],
-        "brooklyn": [],
-        "manhattan": [],
-        "queens": [],
-        "staten_island": []
-      },
+      boroughPolygon: [],
+      nbhdPolygons: [],
+      selectedSubwayStops: [],
       workPlace: _transit_util__WEBPACK_IMPORTED_MODULE_4__["parseCoords"]('40.7447086 -74.0464601'),
       time: 30,
-      borough: 'brooklyn',
+      borough: 'Brooklyn',
       markers: [],
       workMarker: null,
       circles: null,
@@ -43748,49 +43743,26 @@ function (_React$Component) {
   _createClass(CommuteMap, [{
     key: "componentDidMount",
     value: function componentDidMount() {
-      var _this2 = this;
-
       this.map = new google.maps.Map(this.mapNode, _util_map_util__WEBPACK_IMPORTED_MODULE_2__["mapOpts"]());
-      fetch("https://data.cityofnewyork.us/resource/7t3b-ywvw.json", {
-        "$$app_token": "".concat(Object(_key_js__WEBPACK_IMPORTED_MODULE_5__["nycKey"])())
-      }).then(function (res) {
-        return _latLngHelper__WEBPACK_IMPORTED_MODULE_3__["receiveData"](res);
-      }).then(function (boundaries) {
-        _this2.setState({
-          boroughPolygons: _latLngHelper__WEBPACK_IMPORTED_MODULE_3__["createPolgygons"](boundaries, _this2.state.boroughPolygons)
-        }, function () {
-          fetch('https://data.cityofnewyork.us/api/views/kk4q-3rt2/rows.json').then(function (res) {
-            return _latLngHelper__WEBPACK_IMPORTED_MODULE_3__["receiveData"](res);
-          }).then(function (res) {
-            return _latLngHelper__WEBPACK_IMPORTED_MODULE_3__["createStopsHash"](res, _this2.state.stopsHash, _this2.state.boroughPolygons);
-          }).then(function (res) {
-            _this2.setState({
-              stopsHash: res
-            }, function () {
-              _this2.clickListener();
-            });
-          });
-        });
-      });
+      this.clickListener();
     }
   }, {
     key: "clickListener",
     value: function clickListener() {
-      var _this3 = this;
+      var _this2 = this;
 
       google.maps.event.addListener(this.map, 'click', function (event) {
-        _this3.state.workMarker ? _this3.state.workMarker.setMap(null) : null;
+        _this2.state.workMarker ? _this2.state.workMarker.setMap(null) : null;
 
-        _this3.setState({
+        _this2.setState({
           workPlace: event.latLng
         }, function () {
-          console.log(_this3.state);
           var marker = new google.maps.Marker({
             position: event.latLng,
-            map: _this3.map
+            map: _this2.map
           });
 
-          _this3.setState({
+          _this2.setState({
             workMarker: marker
           });
         });
@@ -43799,39 +43771,67 @@ function (_React$Component) {
   }, {
     key: "handleSubmit",
     value: function handleSubmit(e) {
-      var _this4 = this;
+      var _this3 = this;
 
       e.preventDefault();
-      _transit_util__WEBPACK_IMPORTED_MODULE_4__["fetchCommuteTime"](this.state.stopsHash, this.state.workPlace, this.state.time, this.state.borough).then(function (locations) {
-        _this4.clearItems("markers");
-
-        var markers = [];
-        _transit_util__WEBPACK_IMPORTED_MODULE_4__["markersFromLocations"](locations, _this4.map, markers);
-
-        _this4.setState({
-          markers: markers
+      this.cleanUp();
+      fetch("https://data.cityofnewyork.us/resource/7t3b-ywvw.json?boro_name=".concat(this.state.borough), {
+        "$$app_token": "".concat(Object(_key_js__WEBPACK_IMPORTED_MODULE_5__["nycKey"])())
+      }).then(function (res) {
+        return _latLngHelper__WEBPACK_IMPORTED_MODULE_3__["receiveData"](res);
+      }).then(function (boundaries) {
+        _this3.setState({
+          boroughPolygon: _latLngHelper__WEBPACK_IMPORTED_MODULE_3__["createPolgygon"](boundaries, _this3.state.borough, _this3.state.boroughPolygon)
         });
+      }).then(function () {
+        return fetch('https://data.cityofnewyork.us/api/views/kk4q-3rt2/rows.json');
+      }).then(function (res) {
+        return _latLngHelper__WEBPACK_IMPORTED_MODULE_3__["receiveData"](res);
+      }).then(function (res) {
+        return _latLngHelper__WEBPACK_IMPORTED_MODULE_3__["createBoroughStops"](res, _this3.state.selectedSubwayStops, _this3.state.boroughPolygon, _this3.state.borough);
+      }).then(function (res) {
+        _this3.setState({
+          selectedSubwayStops: res
+        });
+      }).then(function (res) {
+        _transit_util__WEBPACK_IMPORTED_MODULE_4__["fetchCommuteTime"](_this3.state.selectedSubwayStops, _this3.state.workPlace, _this3.state.time, _this3.state.borough).then(function (locations) {
+          var markers = [];
+          _transit_util__WEBPACK_IMPORTED_MODULE_4__["markersFromLocations"](locations, _this3.map, markers);
 
-        return locations;
-      }).then(function (locations) {
-        _this4.clearItems("circles");
+          _this3.setState({
+            markers: markers
+          });
 
-        var circles = [];
-        _transit_util__WEBPACK_IMPORTED_MODULE_4__["genCircles"](circles, _this4.state.markers, locations, _this4.state.time, _this4.map);
+          return locations;
+        }).then(function (locations) {
+          var circles = [];
+          _transit_util__WEBPACK_IMPORTED_MODULE_4__["genCircles"](circles, _this3.state.markers, locations, _this3.state.time, _this3.map);
 
-        _this4.setState({
-          circles: circles,
-          data: locations
+          _this3.setState({
+            circles: circles,
+            data: locations
+          });
         });
       });
     }
   }, {
+    key: "cleanUp",
+    value: function cleanUp() {
+      this.setState({
+        selectedSubwayStops: []
+      });
+      this.clearItems("markers");
+      this.clearItems("circles");
+    }
+  }, {
     key: "updateField",
     value: function updateField(field) {
-      var _this5 = this;
+      var _this4 = this;
 
       return function (e) {
-        _this5.setState(_defineProperty({}, field, e.currentTarget.value));
+        _this4.setState(_defineProperty({}, field, e.currentTarget.value), function () {
+          console.log(_this4.state.boroughPolygon[0]);
+        });
       };
     }
   }, {
@@ -43846,14 +43846,14 @@ function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
-      var _this6 = this;
+      var _this5 = this;
 
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         id: "master-container"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("main", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         id: "map-container",
         ref: function ref(map) {
-          return _this6.mapNode = map;
+          return _this5.mapNode = map;
         }
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
         onSubmit: this.handleSubmit
@@ -43861,17 +43861,17 @@ function (_React$Component) {
         name: "Borough",
         onChange: this.updateField('borough')
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-        value: "bronx",
-        selected: this.state.borough === "bronx"
+        value: "Bronx",
+        selected: this.state.borough === "Bronx"
       }, "Bronx"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-        value: "brooklyn",
-        selected: this.state.borough === "brooklyn"
+        value: "Brooklyn",
+        selected: this.state.borough === "Brooklyn"
       }, "Brooklyn"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-        value: "manhattan",
-        selected: this.state.borough === "manhattan"
+        value: "Manhattan",
+        selected: this.state.borough === "Manhattan"
       }, "Manhattan"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-        value: "queens",
-        selected: this.state.borough === "queens"
+        value: "Queens",
+        selected: this.state.borough === "Queens"
       }, "Queens"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Max Desired Commute Time"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         onChange: this.updateField('time'),
         type: "number",
@@ -43969,16 +43969,16 @@ var nycKey = function nycKey() {
 /*!*********************************!*\
   !*** ./scripts/latLngHelper.js ***!
   \*********************************/
-/*! exports provided: latLngObj, toLatLng, createPolgygons, receiveData, createStopsHash */
+/*! exports provided: latLngObj, toLatLng, createPolgygon, receiveData, createBoroughStops */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "latLngObj", function() { return latLngObj; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toLatLng", function() { return toLatLng; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createPolgygons", function() { return createPolgygons; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createPolgygon", function() { return createPolgygon; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "receiveData", function() { return receiveData; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createStopsHash", function() { return createStopsHash; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createBoroughStops", function() { return createBoroughStops; });
 /* harmony import */ var _transit_util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./transit_util */ "./scripts/transit_util.js");
 
 var latLngObj = function latLngObj(arr) {
@@ -43999,55 +43999,85 @@ var toLatLng = function toLatLng(geoJ) {
   });
   return output;
 };
-var createPolgygons = function createPolgygons(geoJ, container) {
-  var boroughs = ["manhattan", "bronx", "staten_island", "brooklyn", "queens"];
-  geoJ.forEach(function (borough, idx) {
-    var boroughObj = {};
-    var path = toLatLng(borough.the_geom.coordinates);
-    boroughObj[boroughs[idx]] = new google.maps.Polygon({
-      paths: path
-    });
-    container.push(boroughObj);
+var createPolgygon = function createPolgygon(geoJ, borough, container) {
+  container = [];
+  var boroughObj = {};
+  var path = toLatLng(geoJ[0].the_geom.coordinates);
+  boroughObj[borough] = new google.maps.Polygon({
+    paths: path
   });
+  container.push(boroughObj);
   return container;
 };
 var receiveData = function receiveData(res) {
   return res.json();
-};
-var createStopsHash = function createStopsHash(res, stopsHash, polygons) {
+}; // export const createStopsHash = (res, stopsHash, polygons) => {
+//   const stopsArr = res.data;
+//   stopsArr.forEach(stop => {
+//     let coords = stop[11].slice(6);
+//     let stopObj = {};
+//     stop.forEach((listItem, idx) => {
+//       switch (idx) {
+//         case 0:
+//           stopObj.id = listItem;
+//           break;
+//         case 10:
+//           stopObj.subwayStop = listItem;
+//           break;
+//         case 11:
+//           stopObj.lngLat = coords;
+//           break;
+//         case 12:
+//           stopObj.trains = listItem;
+//           break;
+//         case 13:
+//           stopObj.info = listItem;
+//           break;
+//         default:
+//           break
+//       }
+//     })
+//     stopsHash[locationFilter(polygons, coords)].push(stopObj)
+//   })
+//   return stopsHash
+// }
+
+var createBoroughStops = function createBoroughStops(res, selectedSubwayStops, polygon, borough) {
   var stopsArr = res.data;
   stopsArr.forEach(function (stop) {
-    var coords = stop[11].slice(6);
-    var stopObj = {};
-    stop.forEach(function (listItem, idx) {
-      switch (idx) {
-        case 0:
-          stopObj.id = listItem;
-          break;
+    if (Object(_transit_util__WEBPACK_IMPORTED_MODULE_0__["locationFilter"])(polygon, stop, borough)) {
+      var coords = stop[11].slice(6);
+      var stopObj = {};
+      stop.forEach(function (listItem, idx) {
+        switch (idx) {
+          case 0:
+            stopObj.id = listItem;
+            break;
 
-        case 10:
-          stopObj.subwayStop = listItem;
-          break;
+          case 10:
+            stopObj.subwayStop = listItem;
+            break;
 
-        case 11:
-          stopObj.lngLat = coords;
-          break;
+          case 11:
+            stopObj.lngLat = coords;
+            break;
 
-        case 12:
-          stopObj.trains = listItem;
-          break;
+          case 12:
+            stopObj.trains = listItem;
+            break;
 
-        case 13:
-          stopObj.info = listItem;
-          break;
+          case 13:
+            stopObj.info = listItem;
+            break;
 
-        default:
-          break;
-      }
-    });
-    stopsHash[Object(_transit_util__WEBPACK_IMPORTED_MODULE_0__["locationFilter"])(polygons, coords)].push(stopObj);
+          default:
+            break;
+        }
+      });
+      selectedSubwayStops.push(stopObj);
+    }
   });
-  return stopsHash;
+  return selectedSubwayStops;
 };
 
 /***/ }),
@@ -44092,15 +44122,11 @@ var parseUrlCoordsLatLng = function parseUrlCoordsLatLng(latLng) {
   return "".concat(lat, ",").concat(lng);
 };
 
-var locationFilter = function locationFilter(polygons, stop) {
-  stop = parseCoords(stop);
-  var boroughs = ["manhattan", "bronx", "staten_island", "brooklyn", "queens"];
-  var borough;
-  polygons.forEach(function (poly, idx) {
-    google.maps.geometry.poly.containsLocation(stop, poly[boroughs[idx]]) ? borough = boroughs[idx] : null;
-  });
-  return borough;
-}; // export const getCommuteTime = (originHash, destination, service, display, ) => {
+var locationFilter = function locationFilter(polygon, data, borough) {
+  stop = parseCoords(data[11].slice(6));
+  return google.maps.geometry.poly.containsLocation(stop, polygon[0][borough]) ? true : false;
+}; // return google.maps.geometry.poly.containsLocation(stop, polygon[0][borough]) ? true : false;
+// export const getCommuteTime = (originHash, destination, service, display, ) => {
 //     service.route({
 //     origin: parseCoords(originHash.brooklyn[0].lngLat),
 //     destination: destination,
@@ -44115,20 +44141,19 @@ var locationFilter = function locationFilter(polygons, stop) {
 //   });
 // }
 
-var filterByTime = function filterByTime(response, time, originHash, borough) {
+var filterByTime = function filterByTime(response, time, originHash) {
   var matches = [];
   time = time * 60;
   response.forEach(function (row, idx) {
     var commuteTime = row.elements[0].duration.value;
 
     if (commuteTime <= time) {
-      var boroughWithTime = Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, originHash[borough][idx], {
+      var boroughWithTime = Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, originHash[idx], {
         commuteTime: commuteTime
       });
       matches.push(boroughWithTime);
     }
   });
-  console.log(matches);
   return matches;
 };
 
@@ -44147,11 +44172,11 @@ var makeMatrixUrl = function makeMatrixUrl(originHash, destination) {
 
 var fetchCommuteTime = function fetchCommuteTime(originHash, destination, time, borough) {
   return new Promise(function (resolve) {
-    if (originHash[borough].length > 100) {
-      var halfBorough = originHash[borough].splice(100);
+    if (originHash.length > 100) {
+      var halfBorough = originHash.splice(100);
       var qString2 = makeMatrixUrl(halfBorough, destination);
-      var qString1 = makeMatrixUrl(originHash[borough], destination);
-      originHash[borough] = originHash[borough].concat(halfBorough);
+      var qString1 = makeMatrixUrl(originHash, destination);
+      originHash = originHash.concat(halfBorough);
       fetch(qString1).then(function (res1) {
         return res1.json();
       }).then(function (res1) {
@@ -44162,7 +44187,7 @@ var fetchCommuteTime = function fetchCommuteTime(originHash, destination, time, 
         });
       });
     } else {
-      var qString = makeMatrixUrl(originHash[borough], destination);
+      var qString = makeMatrixUrl(originHash, destination);
       fetch(qString).then(function (res) {
         return res.json();
       }).then(function (res) {
@@ -44226,8 +44251,8 @@ __webpack_require__.r(__webpack_exports__);
 var mapOpts = function mapOpts() {
   return {
     center: {
-      lng: -73.8506199987954,
-      lat: 40.903125000541245
+      lng: -74.0050261,
+      lat: 40.7275711
     },
     zoom: 12
   };

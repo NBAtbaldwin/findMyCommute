@@ -20,16 +20,15 @@ export const toLatLng = (geoJ) => {
   return output
 }
 
-export const createPolgygons = (geoJ, container) => {
-  const boroughs = ["manhattan", "bronx", "staten_island", "brooklyn", "queens"];
-  geoJ.forEach((borough, idx) => {
-    let boroughObj = {};
-    let path = toLatLng(borough.the_geom.coordinates);
-    boroughObj[boroughs[idx]] = new google.maps.Polygon({
-        paths: path,
-      });
-    container.push(boroughObj);
-  });
+export const createPolgygon = (geoJ, borough, container) => {
+  container = [];
+  let boroughObj = {};
+  let path = toLatLng(geoJ[0].the_geom.coordinates);
+  boroughObj[borough] = new google.maps.Polygon({
+      paths: path,
+    });
+  container.push(boroughObj);
+
   return container;
 }
 
@@ -37,33 +36,66 @@ export const receiveData = (res) => {
   return res.json();
 }
 
-export const createStopsHash = (res, stopsHash, polygons) => {
+// export const createStopsHash = (res, stopsHash, polygons) => {
+//   const stopsArr = res.data;
+//   stopsArr.forEach(stop => {
+//     let coords = stop[11].slice(6);
+//     let stopObj = {};
+//     stop.forEach((listItem, idx) => {
+//       switch (idx) {
+//         case 0:
+//           stopObj.id = listItem;
+//           break;
+//         case 10:
+//           stopObj.subwayStop = listItem;
+//           break;
+//         case 11:
+//           stopObj.lngLat = coords;
+//           break;
+//         case 12:
+//           stopObj.trains = listItem;
+//           break;
+//         case 13:
+//           stopObj.info = listItem;
+//           break;
+//         default:
+//           break
+//       }
+//     })
+//     stopsHash[locationFilter(polygons, coords)].push(stopObj)
+//   })
+//   return stopsHash
+// }
+
+export const createBoroughStops = (res, selectedSubwayStops, polygon, borough) => {
   const stopsArr = res.data;
   stopsArr.forEach(stop => {
-    let coords = stop[11].slice(6);
-    let stopObj = {};
-    stop.forEach((listItem, idx) => {
-      switch (idx) {
-        case 0:
-          stopObj.id = listItem;
-          break;
-        case 10:
-          stopObj.subwayStop = listItem;
-          break;
-        case 11:
-          stopObj.lngLat = coords;
-          break;
-        case 12:
-          stopObj.trains = listItem;
-          break;
-        case 13:
-          stopObj.info = listItem;
-          break;
-        default:
-          break
-      }
-    })
-    stopsHash[locationFilter(polygons, coords)].push(stopObj)
-  })
-  return stopsHash
+    if (locationFilter(polygon, stop, borough)) {
+      let coords = stop[11].slice(6);
+      let stopObj = {};
+      stop.forEach((listItem, idx) => {
+        switch (idx) {
+          case 0:
+            stopObj.id = listItem;
+            break;
+          case 10:
+            stopObj.subwayStop = listItem;
+            break;
+          case 11:
+            stopObj.lngLat = coords;
+            break;
+          case 12:
+            stopObj.trains = listItem;
+            break;
+          case 13:
+            stopObj.info = listItem;
+            break;
+          default:
+            break
+        }
+      })
+      selectedSubwayStops.push(stopObj);
+    }
+  });
+  return selectedSubwayStops;
 }
