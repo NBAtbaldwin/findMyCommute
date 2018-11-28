@@ -4,7 +4,8 @@ import * as MapUtil from './util/map_util';
 // import { bounds } from './boundaries';
 import * as LatLngUtil from './latLngHelper';
 import * as TransitUtil from './transit_util';
-import { nycKey } from './key.js'
+import { nycKey } from './key.js';
+import CommuteTable from './commute_table';
 
 class CommuteMap extends React.Component {
   constructor(props) {
@@ -24,6 +25,7 @@ class CommuteMap extends React.Component {
       markers: [],
       workMarker: null,
       circles: null,
+      data: null,
     }
     this.handleSubmit = this.handleSubmit.bind(this);
     this.updateField = this.updateField.bind(this);
@@ -83,7 +85,7 @@ class CommuteMap extends React.Component {
         this.clearItems("circles");
         let circles = [];
         TransitUtil.genCircles(circles, this.state.markers, locations, this.state.time, this.map);
-        this.setState({circles: circles})
+        this.setState({circles: circles, data: locations})
       })
   }
 
@@ -102,25 +104,30 @@ class CommuteMap extends React.Component {
 
   render() {
     return(
-      <div>
-        <div id='map-container' ref={ map => this.mapNode = map }></div>
-        <form onSubmit={this.handleSubmit}>
-          <div>
-            <label>Borough</label>
-            <select name="Borough" onChange={this.updateField('borough')}>
-              <option value="bronx" selected={this.state.borough === "bronx"}>Bronx</option>
-              <option value="brooklyn" selected={this.state.borough === "brooklyn"}>Brooklyn</option>
-              <option value="manhattan" selected={this.state.borough === "manhattan"}>Manhattan</option>
-              <option value="queens" selected={this.state.borough === "queens"}>Queens</option>
-            </select>
-          </div>
-          <div>
-            <label>Max Desired Commute Time</label>
-            <input onChange={this.updateField('time')} type="number" value={this.state.time} name="time" min="5" max="120" />
-          </div>
-          <input type="hidden" value={this.state.workPlace} />
-          <button type="submit" value="find-stops">Find stops</button>
-        </form>
+      <div id="master-container">
+        <main>
+          <div id='map-container' ref={ map => this.mapNode = map }></div>
+          <form onSubmit={this.handleSubmit}>
+            <div>
+              <label>Borough</label>
+              <select name="Borough" onChange={this.updateField('borough')}>
+                <option value="bronx" selected={this.state.borough === "bronx"}>Bronx</option>
+                <option value="brooklyn" selected={this.state.borough === "brooklyn"}>Brooklyn</option>
+                <option value="manhattan" selected={this.state.borough === "manhattan"}>Manhattan</option>
+                <option value="queens" selected={this.state.borough === "queens"}>Queens</option>
+              </select>
+            </div>
+            <div>
+              <label>Max Desired Commute Time</label>
+              <input onChange={this.updateField('time')} type="number" value={this.state.time} name="time" min="5" max="120" />
+            </div>
+            <input type="hidden" value={this.state.workPlace} />
+            <button type="submit" value="find-stops">Find stops</button>
+          </form>
+        </main>
+        <aside>
+          <CommuteTable transitData={this.state.data} />
+        </aside>
       </div>
     )
   }

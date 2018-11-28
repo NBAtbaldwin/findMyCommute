@@ -57,6 +57,7 @@ const filterByTime = (response, time, originHash, borough) => {
       matches.push(boroughWithTime);
     }
   });
+  console.log(matches);
   return matches;
 }
 

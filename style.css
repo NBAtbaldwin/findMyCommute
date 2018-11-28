@@ -1,4 +1,32 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+#root {
+  width: 100%;
+}
+
+#master-container {
+  height: 600px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+main, aside {
+  height: 100%;
+  width: 50%;
+}
+
 #map-container {
-  height: 700px;
-  width: 900px;
+  height: 100%;
+  width: 100%;
+}
+
+aside {
+
 }
