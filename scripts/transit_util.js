@@ -24,10 +24,8 @@ const parseUrlCoordsLatLng = (latLng) => {
 
 export const locationFilter = (polygon, data, borough) => {
   stop = parseCoords(data[11].slice(6));
-  return google.maps.geometry.poly.containsLocation(stop, polygon[0][borough]) ? true : false;
+  return google.maps.geometry.poly.containsLocation(stop, polygon) ? true : false;
 }
-
-// return google.maps.geometry.poly.containsLocation(stop, polygon[0][borough]) ? true : false;
 
 // export const getCommuteTime = (originHash, destination, service, display, ) => {
 //     service.route({
@@ -67,7 +65,7 @@ const makeMatrixUrl = (originHash, destination) => {
     }
   });
   destination = parseUrlCoordsLatLng(destination)
-  return `https://maps.googleapis.com/maps/api/distancematrix/json?&origins=${originQuery}&destinations=${destination}&mode=transit&key=${myKey()}`;
+  return `https://maps.googleapis.com/maps/api/distancematrix/json?&origins=${originQuery}&destinations=${destination}&mode=transit&key=${process.env.GAPI_KEY}`;
 }
 
 export const fetchCommuteTime = (originHash, destination, time, borough) => {
