@@ -75,12 +75,13 @@ export const fetchCommuteTime = (originHash, destination, time, borough) => {
       const qString2 = makeMatrixUrl(halfBorough, destination);
       const qString1 = makeMatrixUrl(originHash, destination);
       originHash = originHash.concat(halfBorough);
-      fetch(qString1)
+      fetch(qString1, {mode: 'cors'})
       .then(res1 => {
+        debugger;
         return res1.json();
       })
       .then(res1 => {
-        fetch(qString2)
+        fetch(qString2, {mode: 'cors'})
         .then(res2 => {
           return res2.json();
         })
@@ -90,7 +91,7 @@ export const fetchCommuteTime = (originHash, destination, time, borough) => {
       })
     } else {
       const qString = makeMatrixUrl(originHash, destination);
-      fetch(qString)
+      fetch(qString, {mode: 'cors'})
       .then(res => {
         return res.json();
       })

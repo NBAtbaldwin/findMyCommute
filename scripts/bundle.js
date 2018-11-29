@@ -52519,6 +52519,7 @@ function (_React$Component) {
           selectedSubwayStops: res
         });
       }).then(function (res) {
+        debugger;
         _transit_util__WEBPACK_IMPORTED_MODULE_3__["fetchCommuteTime"](_this2.state.selectedSubwayStops, _this2.state.workplace, _this2.state.time, _this2.state.borough).then(function (locations) {
           _this2.setState({
             filteredSubwayStops: locations
@@ -53113,10 +53114,15 @@ var fetchCommuteTime = function fetchCommuteTime(originHash, destination, time, 
       var qString2 = makeMatrixUrl(halfBorough, destination);
       var qString1 = makeMatrixUrl(originHash, destination);
       originHash = originHash.concat(halfBorough);
-      fetch(qString1).then(function (res1) {
+      fetch(qString1, {
+        mode: 'cors'
+      }).then(function (res1) {
+        debugger;
         return res1.json();
       }).then(function (res1) {
-        fetch(qString2).then(function (res2) {
+        fetch(qString2, {
+          mode: 'cors'
+        }).then(function (res2) {
           return res2.json();
         }).then(function (res2) {
           resolve(filterByTime(res1.rows.concat(res2.rows), time, originHash, borough));
@@ -53124,7 +53130,9 @@ var fetchCommuteTime = function fetchCommuteTime(originHash, destination, time, 
       });
     } else {
       var qString = makeMatrixUrl(originHash, destination);
-      fetch(qString).then(function (res) {
+      fetch(qString, {
+        mode: 'cors'
+      }).then(function (res) {
         return res.json();
       }).then(function (res) {
         resolve(filterByTime(res.rows, time, originHash, borough));
