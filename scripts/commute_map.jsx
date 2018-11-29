@@ -58,7 +58,7 @@ export class CommuteMap extends React.Component {
         >
         <WorkMarker coords={this.state.workMarker} />
         <Polygons boundaries={this.state.boroughPolygons} />
-        <Markers coords={this.state.subwayStops} />
+        <Markers coords={this.state.subwayStops} targetTime={this.props.targetTime} />
         <Circles subwayStops={this.state.subwayStops} targetTime={this.props.targetTime} />
       </Map>
     )

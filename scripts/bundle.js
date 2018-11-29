@@ -52324,7 +52324,8 @@ function (_React$Component) {
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_polygons__WEBPACK_IMPORTED_MODULE_6__["default"], {
         boundaries: this.state.boroughPolygons
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_markers__WEBPACK_IMPORTED_MODULE_5__["default"], {
-        coords: this.state.subwayStops
+        coords: this.state.subwayStops,
+        targetTime: this.props.targetTime
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_circles__WEBPACK_IMPORTED_MODULE_8__["default"], {
         subwayStops: this.state.subwayStops,
         targetTime: this.props.targetTime
@@ -52845,10 +52846,14 @@ __webpack_require__.r(__webpack_exports__);
 
 var Markers = function Markers(_ref) {
   var coords = _ref.coords,
+      targetTime = _ref.targetTime,
       google = _ref.google,
       map = _ref.map,
       mapCenter = _ref.mapCenter;
-  return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, coords.map(function (subway, idx) {
+  var filteredCoords = coords.filter(function (coord) {
+    return coord.commuteTime <= targetTime * 60;
+  });
+  return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, filteredCoords.map(function (subway, idx) {
     var lngLat = _transit_util__WEBPACK_IMPORTED_MODULE_3__["parseCoords"](subway.lngLat);
     return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["Marker"], {
       google: google,
@@ -52894,6 +52899,8 @@ var Polygons = function Polygons(_ref) {
       google = _ref.google,
       map = _ref.map,
       mapCenter = _ref.mapCenter;
+  var mapShow = map;
+  var mapHide = null;
   return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, [boundaries].map(function (bounds, idx) {
     return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["Polygon"], {
       google: google,
@@ -53131,13 +53138,10 @@ var filterByTime = function filterByTime(response, time, originHash) {
   time = time * 60;
   response.forEach(function (row, idx) {
     var commuteTime = row.elements[0].duration.value;
-
-    if (commuteTime <= time) {
-      var boroughWithTime = Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, originHash[idx], {
-        commuteTime: commuteTime
-      });
-      matches.push(boroughWithTime);
-    }
+    var boroughWithTime = Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, originHash[idx], {
+      commuteTime: commuteTime
+    });
+    matches.push(boroughWithTime);
   });
   return matches;
 };

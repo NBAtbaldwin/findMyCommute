@@ -4,6 +4,9 @@ import * as LatLngUtil from './../latLngHelper';
 import * as TransitUtil from './../transit_util';
 
 export const Polygons = ({boundaries, google, map, mapCenter}) => {
+  let mapShow = map;
+  let mapHide = null;
+  
   return(
     <>
       {[boundaries].map((bounds, idx) => {

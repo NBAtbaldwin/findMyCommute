@@ -3,10 +3,13 @@ import {Map, Marker, GoogleApiWrapper} from 'google-maps-react';
 import * as LatLngUtil from './../latLngHelper';
 import * as TransitUtil from './../transit_util';
 
-export const Markers = ({coords, google, map, mapCenter}) => {
+export const Markers = ({coords, targetTime, google, map, mapCenter}) => {
+  const filteredCoords = coords.filter(coord => {
+    return coord.commuteTime <= targetTime * 60
+  })
   return(
     <>
-      {coords.map((subway, idx) => {
+      {filteredCoords.map((subway, idx) => {
         let lngLat = TransitUtil.parseCoords(subway.lngLat);
         return(
           <Marker

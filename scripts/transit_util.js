@@ -47,10 +47,8 @@ const filterByTime = (response, time, originHash) => {
   time = time * 60;
   response.forEach((row, idx) => {
     let commuteTime = row.elements[0].duration.value;
-    if (commuteTime <= time) {
-      let boroughWithTime = merge({}, originHash[idx], {commuteTime: commuteTime});
-      matches.push(boroughWithTime);
-    }
+    let boroughWithTime = merge({}, originHash[idx], {commuteTime: commuteTime});
+    matches.push(boroughWithTime);
   });
   return matches;
 }
