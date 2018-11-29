@@ -65,7 +65,7 @@ const makeMatrixUrl = (originHash, destination) => {
     }
   });
   destination = parseUrlCoordsLatLng(destination)
-  return `https://maps.googleapis.com/maps/api/distancematrix/json?&origins=${originQuery}&destinations=${destination}&mode=transit&key=${process.env.GAPI_KEY}`;
+  return `https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/distancematrix/json?&origins=${originQuery}&destinations=${destination}&mode=transit&key=${process.env.GAPI_KEY}`;
 }
 
 export const fetchCommuteTime = (originHash, destination, time, borough) => {
@@ -77,7 +77,6 @@ export const fetchCommuteTime = (originHash, destination, time, borough) => {
       originHash = originHash.concat(halfBorough);
       fetch(qString1, {mode: 'cors'})
       .then(res1 => {
-        debugger;
         return res1.json();
       })
       .then(res1 => {

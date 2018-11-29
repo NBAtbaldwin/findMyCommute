@@ -56,7 +56,6 @@ export class Home extends React.Component {
       })
     })
     .then(res => {
-      debugger;
       TransitUtil.fetchCommuteTime(this.state.selectedSubwayStops, this.state.workplace, this.state.time, this.state.borough)
         .then(locations => {
           this.setState({

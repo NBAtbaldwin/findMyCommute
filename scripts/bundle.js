@@ -52519,7 +52519,6 @@ function (_React$Component) {
           selectedSubwayStops: res
         });
       }).then(function (res) {
-        debugger;
         _transit_util__WEBPACK_IMPORTED_MODULE_3__["fetchCommuteTime"](_this2.state.selectedSubwayStops, _this2.state.workplace, _this2.state.time, _this2.state.borough).then(function (locations) {
           _this2.setState({
             filteredSubwayStops: locations
@@ -53104,7 +53103,7 @@ var makeMatrixUrl = function makeMatrixUrl(originHash, destination) {
     }
   });
   destination = parseUrlCoordsLatLng(destination);
-  return "https://maps.googleapis.com/maps/api/distancematrix/json?&origins=".concat(originQuery, "&destinations=").concat(destination, "&mode=transit&key=").concat("AIzaSyBhrAnIOlsxL-ZYZ0GLYlSvFZ9r0BFYGaI");
+  return "https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api/distancematrix/json?&origins=".concat(originQuery, "&destinations=").concat(destination, "&mode=transit&key=").concat("AIzaSyBhrAnIOlsxL-ZYZ0GLYlSvFZ9r0BFYGaI");
 };
 
 var fetchCommuteTime = function fetchCommuteTime(originHash, destination, time, borough) {
@@ -53117,7 +53116,6 @@ var fetchCommuteTime = function fetchCommuteTime(originHash, destination, time, 
       fetch(qString1, {
         mode: 'cors'
       }).then(function (res1) {
-        debugger;
         return res1.json();
       }).then(function (res1) {
         fetch(qString2, {
