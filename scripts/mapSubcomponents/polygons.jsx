@@ -6,14 +6,12 @@ import * as TransitUtil from './../transit_util';
 export const Polygons = ({boundaries, google, map, mapCenter}) => {
   let mapShow = map;
   let mapHide = null;
-  
+
   return(
     <>
       {[boundaries].map((bounds, idx) => {
         return(
           <Polygon
-            google={google}
-            map={map}
             paths={bounds}
             strokeColor="#0000FF"
             strokeOpacity={0.8}
@@ -29,3 +27,6 @@ export const Polygons = ({boundaries, google, map, mapCenter}) => {
 export default GoogleApiWrapper({
   apiKey: (process.env.GAPI_KEY)
 })(Polygons)
+
+// google={google}
+// map={map}

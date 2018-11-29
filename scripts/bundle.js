@@ -52903,8 +52903,6 @@ var Polygons = function Polygons(_ref) {
   var mapHide = null;
   return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, [boundaries].map(function (bounds, idx) {
     return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["Polygon"], {
-      google: google,
-      map: map,
       paths: bounds,
       strokeColor: "#0000FF",
       strokeOpacity: 0.8,
@@ -52916,7 +52914,8 @@ var Polygons = function Polygons(_ref) {
 };
 /* harmony default export */ __webpack_exports__["default"] = (Object(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["GoogleApiWrapper"])({
   apiKey: "AIzaSyBhrAnIOlsxL-ZYZ0GLYlSvFZ9r0BFYGaI"
-})(Polygons));
+})(Polygons)); // google={google}
+// map={map}
 
 /***/ }),
 
