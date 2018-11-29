@@ -113,30 +113,3 @@ export const markersFromLocations = (locations, map, markers) => {
   });
   return markers
 }
-
-const displayCircle = (marker, time, map) => {
-  let circle = new google.maps.Circle({
-    strokeColor: '#FF0000',
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
-    fillColor: '#FF0000',
-    fillOpacity: 0.35,
-    map: map,
-    center: {lat: marker.position.lat(), lng: marker.position.lng()},
-    radius: time,
-  });
-  return circle;
-}
-
-const walkingDistance = () => {
-
-}
-
-export const genCircles = (circles, markers, locations, time, map) => {
-  markers.forEach((mark, idx) => {
-    let subwayTime = ((time * 60) - locations[idx].commuteTime) * 1.4;
-    let circle = displayCircle(mark, subwayTime, map);
-    circles.push(circle);
-  })
-  return circles;
-}

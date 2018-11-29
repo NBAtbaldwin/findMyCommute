@@ -6,6 +6,7 @@ import * as TransitUtil from './transit_util';
 import Markers from './mapSubcomponents/markers';
 import Polygons from './mapSubcomponents/polygons';
 import WorkMarker from './mapSubcomponents/work_marker';
+import Circles from './mapSubcomponents/circles';
 
 export class CommuteMap extends React.Component {
   constructor(props) {
@@ -14,6 +15,7 @@ export class CommuteMap extends React.Component {
       boroughPolygons: [],
       subwayStops: [],
       workMarker: "",
+      targetTime: "",
     }
     this.clickListener = this.clickListener.bind(this);
   }
@@ -25,11 +27,13 @@ export class CommuteMap extends React.Component {
   componentDidUpdate(prevProps) {
     if (this.props.polygon !== prevProps.polygon) {
       this.setState({
-        boroughPolygons: this.props.polygon
+        boroughPolygons: this.props.polygon,
+        targetTime: this.props.targetTime,
       })
     } else if (this.props.subwayStops !== prevProps.subwayStops) {
       this.setState({
-        subwayStops: this.props.subwayStops
+        subwayStops: this.props.subwayStops,
+        targetTime: this.props.targetTime,
       })
     }
   }
@@ -55,6 +59,7 @@ export class CommuteMap extends React.Component {
         <WorkMarker coords={this.state.workMarker} />
         <Polygons boundaries={this.state.boroughPolygons} />
         <Markers coords={this.state.subwayStops} />
+        <Circles subwayStops={this.state.subwayStops} targetTime={this.props.targetTime} />
       </Map>
     )
   }

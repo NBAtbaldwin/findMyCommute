@@ -16,7 +16,7 @@ export class Home extends React.Component {
       filteredSubwayStops: [],
       time: 30,
       borough: 'Brooklyn',
-      workplace: null,
+      workplace: "",
       data: null,
     }
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -74,9 +74,7 @@ export class Home extends React.Component {
 
   updateField(field) {
     return (e) => {
-      this.setState({[field]: e.currentTarget.value}, () => {
-        // console.log(this.state.boroughPolygon[0])
-      });
+      this.setState({[field]: e.currentTarget.value});
     };
   }
 
@@ -85,16 +83,16 @@ export class Home extends React.Component {
       <div id="master-container">
         <main>
           <div id="map-container">
-            <CommuteMapContainer polygon={this.state.boroughPolygon} subwayStops={this.state.filteredSubwayStops}/>
+            <CommuteMapContainer polygon={this.state.boroughPolygon} subwayStops={this.state.filteredSubwayStops} targetTime={this.state.time}/>
           </div>
           <form onSubmit={this.handleSubmit}>
             <div>
               <label>Borough</label>
-              <select name="Borough" onChange={this.updateField('borough')}>
-                <option value="Bronx" selected={this.state.borough === "Bronx"}>Bronx</option>
-                <option value="Brooklyn" selected={this.state.borough === "Brooklyn"}>Brooklyn</option>
-                <option value="Manhattan" selected={this.state.borough === "Manhattan"}>Manhattan</option>
-                <option value="Queens" selected={this.state.borough === "Queens"}>Queens</option>
+              <select name="Borough" value={this.state.borough} onChange={this.updateField('borough')}>
+                <option value="Bronx">Bronx</option>
+                <option value="Brooklyn">Brooklyn</option>
+                <option value="Manhattan">Manhattan</option>
+                <option value="Queens">Queens</option>
               </select>
             </div>
             <div>

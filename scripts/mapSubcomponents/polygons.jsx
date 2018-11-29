@@ -15,8 +15,7 @@ export const Polygons = ({boundaries, google, map, mapCenter}) => {
             strokeColor="#0000FF"
             strokeOpacity={0.8}
             strokeWeight={2}
-            fillColor="#0000FF"
-            fillOpacity={0.35}
+            fillOpacity={0.00}
             key={idx} />
         )
       })}

@@ -52229,6 +52229,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mapSubcomponents_markers__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./mapSubcomponents/markers */ "./scripts/mapSubcomponents/markers.jsx");
 /* harmony import */ var _mapSubcomponents_polygons__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./mapSubcomponents/polygons */ "./scripts/mapSubcomponents/polygons.jsx");
 /* harmony import */ var _mapSubcomponents_work_marker__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./mapSubcomponents/work_marker */ "./scripts/mapSubcomponents/work_marker.jsx");
+/* harmony import */ var _mapSubcomponents_circles__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./mapSubcomponents/circles */ "./scripts/mapSubcomponents/circles.jsx");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -52255,6 +52256,7 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 
 
+
 var CommuteMap =
 /*#__PURE__*/
 function (_React$Component) {
@@ -52269,7 +52271,8 @@ function (_React$Component) {
     _this.state = {
       boroughPolygons: [],
       subwayStops: [],
-      workMarker: ""
+      workMarker: "",
+      targetTime: ""
     };
     _this.clickListener = _this.clickListener.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
@@ -52283,11 +52286,13 @@ function (_React$Component) {
     value: function componentDidUpdate(prevProps) {
       if (this.props.polygon !== prevProps.polygon) {
         this.setState({
-          boroughPolygons: this.props.polygon
+          boroughPolygons: this.props.polygon,
+          targetTime: this.props.targetTime
         });
       } else if (this.props.subwayStops !== prevProps.subwayStops) {
         this.setState({
-          subwayStops: this.props.subwayStops
+          subwayStops: this.props.subwayStops,
+          targetTime: this.props.targetTime
         });
       }
     }
@@ -52320,6 +52325,9 @@ function (_React$Component) {
         boundaries: this.state.boroughPolygons
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_markers__WEBPACK_IMPORTED_MODULE_5__["default"], {
         coords: this.state.subwayStops
+      }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_circles__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        subwayStops: this.state.subwayStops,
+        targetTime: this.props.targetTime
       }));
     }
   }]);
@@ -52471,7 +52479,7 @@ function (_React$Component) {
       filteredSubwayStops: [],
       time: 30,
       borough: 'Brooklyn',
-      workplace: null,
+      workplace: "",
       data: null
     };
     _this.handleSubmit = _this.handleSubmit.bind(_assertThisInitialized(_assertThisInitialized(_this)));
@@ -52540,8 +52548,7 @@ function (_React$Component) {
       var _this3 = this;
 
       return function (e) {
-        _this3.setState(_defineProperty({}, field, e.currentTarget.value), function () {// console.log(this.state.boroughPolygon[0])
-        });
+        _this3.setState(_defineProperty({}, field, e.currentTarget.value));
       };
     }
   }, {
@@ -52553,24 +52560,22 @@ function (_React$Component) {
         id: "map-container"
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_commute_map_container_js__WEBPACK_IMPORTED_MODULE_4__["default"], {
         polygon: this.state.boroughPolygon,
-        subwayStops: this.state.filteredSubwayStops
+        subwayStops: this.state.filteredSubwayStops,
+        targetTime: this.state.time
       })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
         onSubmit: this.handleSubmit
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Borough"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
         name: "Borough",
+        value: this.state.borough,
         onChange: this.updateField('borough')
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-        value: "Bronx",
-        selected: this.state.borough === "Bronx"
+        value: "Bronx"
       }, "Bronx"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-        value: "Brooklyn",
-        selected: this.state.borough === "Brooklyn"
+        value: "Brooklyn"
       }, "Brooklyn"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-        value: "Manhattan",
-        selected: this.state.borough === "Manhattan"
+        value: "Manhattan"
       }, "Manhattan"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-        value: "Queens",
-        selected: this.state.borough === "Queens"
+        value: "Queens"
       }, "Queens"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Max Desired Commute Time"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         onChange: this.updateField('time'),
         type: "number",
@@ -52772,6 +52777,52 @@ var createBoroughStops = function createBoroughStops(res, selectedSubwayStops, b
 
 /***/ }),
 
+/***/ "./scripts/mapSubcomponents/circles.jsx":
+/*!**********************************************!*\
+  !*** ./scripts/mapSubcomponents/circles.jsx ***!
+  \**********************************************/
+/*! exports provided: Circles, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Circles", function() { return Circles; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! google-maps-react */ "./node_modules/google-maps-react/dist/index.js");
+/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(google_maps_react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _latLngHelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./../latLngHelper */ "./scripts/latLngHelper.js");
+/* harmony import */ var _transit_util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./../transit_util */ "./scripts/transit_util.js");
+/* harmony import */ var _util_circles_util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./../util/circles_util */ "./scripts/util/circles_util.js");
+
+
+
+
+
+var Circles = function Circles(_ref) {
+  var subwayStops = _ref.subwayStops,
+      targetTime = _ref.targetTime,
+      google = _ref.google,
+      map = _ref.map,
+      mapCenter = _ref.mapCenter;
+  var circleArr = _util_circles_util__WEBPACK_IMPORTED_MODULE_4__["genCircles"](subwayStops, targetTime);
+  return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["Polygon"], {
+    google: google,
+    map: map,
+    paths: circleArr,
+    strokeColor: "#0000FF",
+    strokeOpacity: 0.35,
+    strokeWeight: 0,
+    fillColor: "#0000FF",
+    fillOpacity: 0.35
+  });
+};
+/* harmony default export */ __webpack_exports__["default"] = (Object(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["GoogleApiWrapper"])({
+  apiKey: "AIzaSyBhrAnIOlsxL-ZYZ0GLYlSvFZ9r0BFYGaI"
+})(Circles));
+
+/***/ }),
+
 /***/ "./scripts/mapSubcomponents/markers.jsx":
 /*!**********************************************!*\
   !*** ./scripts/mapSubcomponents/markers.jsx ***!
@@ -52851,8 +52902,7 @@ var Polygons = function Polygons(_ref) {
       strokeColor: "#0000FF",
       strokeOpacity: 0.8,
       strokeWeight: 2,
-      fillColor: "#0000FF",
-      fillOpacity: 0.35,
+      fillOpacity: 0.00,
       key: idx
     });
   }));
@@ -53022,7 +53072,7 @@ var configureStore = function configureStore() {
 /*!*********************************!*\
   !*** ./scripts/transit_util.js ***!
   \*********************************/
-/*! exports provided: parseCoords, locationFilter, fetchCommuteTime, markersFromLocations, genCircles */
+/*! exports provided: parseCoords, locationFilter, fetchCommuteTime, markersFromLocations */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -53031,7 +53081,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "locationFilter", function() { return locationFilter; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fetchCommuteTime", function() { return fetchCommuteTime; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "markersFromLocations", function() { return markersFromLocations; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "genCircles", function() { return genCircles; });
 /* harmony import */ var _key__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./key */ "./scripts/key.js");
 /* harmony import */ var _key__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_key__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
@@ -53150,33 +53199,75 @@ var markersFromLocations = function markersFromLocations(locations, map, markers
   return markers;
 };
 
-var displayCircle = function displayCircle(marker, time, map) {
-  var circle = new google.maps.Circle({
-    strokeColor: '#FF0000',
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
-    fillColor: '#FF0000',
-    fillOpacity: 0.35,
-    map: map,
-    center: {
-      lat: marker.position.lat(),
-      lng: marker.position.lng()
-    },
-    radius: time
-  });
-  return circle;
-};
+/***/ }),
 
-var walkingDistance = function walkingDistance() {};
+/***/ "./scripts/util/circles_util.js":
+/*!**************************************!*\
+  !*** ./scripts/util/circles_util.js ***!
+  \**************************************/
+/*! exports provided: genCircles */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-var genCircles = function genCircles(circles, markers, locations, time, map) {
-  markers.forEach(function (mark, idx) {
-    var subwayTime = (time * 60 - locations[idx].commuteTime) * 1.4;
-    var circle = displayCircle(mark, subwayTime, map);
-    circles.push(circle);
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "genCircles", function() { return genCircles; });
+/* harmony import */ var _transit_util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./../transit_util */ "./scripts/transit_util.js");
+
+var genCircles = function genCircles(locations, time) {
+  var circlePolygon = [];
+  locations.forEach(function (loc, idx) {
+    var subwayRadius = (time * 60 - loc.commuteTime) * 1.4 * 0.000621371;
+
+    if (subwayRadius > 0) {
+      var circle = drawCircle(loc, subwayRadius, 1);
+      circlePolygon.push(circle);
+    }
   });
-  return circles;
-};
+  return circlePolygon;
+}; // export const displayCircle = (marker, time, map) => {
+//   let lngLat = TransitUtil.parseCoords(marker.lngLat);
+//   let circle = new google.maps.Circle({
+//     map: map,
+//     center: {lat: lngLat.lat(), lng: lngLat.lng()},
+//     radius: time,
+//   });
+//   return circle;
+// }
+
+function drawCircle(point, radius, dir) {
+  point = _transit_util__WEBPACK_IMPORTED_MODULE_0__["parseCoords"](point.lngLat);
+  var d2r = Math.PI / 180; // degrees to radians
+
+  var r2d = 180 / Math.PI; // radians to degrees
+
+  var earthsradius = 3963; // 3963 is the radius of the earth in miles
+
+  var points = 32; // find the raidus in lat/lon
+
+  var rlat = radius / earthsradius * r2d;
+  var rlng = rlat / Math.cos(point.lat() * d2r);
+  var extp = new Array();
+
+  if (dir == 1) {
+    var start = 0;
+    var end = points + 1;
+  } // one extra here makes sure we connect the
+  else {
+      var start = points + 1;
+      var end = 0;
+    }
+
+  for (var i = start; dir == 1 ? i < end : i > end; i = i + dir) {
+    var theta = Math.PI * (i / (points / 2));
+    var ey = point.lng() + rlng * Math.cos(theta); // center a + radius x * cos(theta)
+
+    var ex = point.lat() + rlat * Math.sin(theta); // center b + radius y * sin(theta)
+
+    extp.push(new google.maps.LatLng(ex, ey));
+  }
+
+  return extp;
+}
 
 /***/ }),
 
