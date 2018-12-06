@@ -19886,201 +19886,6 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 /***/ }),
 
-/***/ "./node_modules/process/browser.js":
-/*!*****************************************!*\
-  !*** ./node_modules/process/browser.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-
-/***/ }),
-
 /***/ "./node_modules/prop-types/checkPropTypes.js":
 /*!***************************************************!*\
   !*** ./node_modules/prop-types/checkPropTypes.js ***!
@@ -52147,30 +51952,100 @@ module.exports = function(module) {
 /*!****************************************!*\
   !*** ./scripts/actions/map_actions.js ***!
   \****************************************/
-/*! exports provided: RECEIVE_COORDS, receiveCoords, fetchCoords, postCoords */
+/*! exports provided: RECEIVE_COORDS, RECEIVE_TIME, RECEIVE_BOROUGH, RECEIVE_BOROUGH_POLYGON, RECEIVE_NBHD_POLYGONS, receiveCoords, receiveTime, receiveBorough, receiveBoroughPolygon, receiveNbhdPolygons, postCoords, postTime, postBorough, postBoroughPolygon, postNbhdPolygons, fetchCoords */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RECEIVE_COORDS", function() { return RECEIVE_COORDS; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RECEIVE_TIME", function() { return RECEIVE_TIME; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RECEIVE_BOROUGH", function() { return RECEIVE_BOROUGH; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RECEIVE_BOROUGH_POLYGON", function() { return RECEIVE_BOROUGH_POLYGON; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RECEIVE_NBHD_POLYGONS", function() { return RECEIVE_NBHD_POLYGONS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "receiveCoords", function() { return receiveCoords; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fetchCoords", function() { return fetchCoords; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "receiveTime", function() { return receiveTime; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "receiveBorough", function() { return receiveBorough; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "receiveBoroughPolygon", function() { return receiveBoroughPolygon; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "receiveNbhdPolygons", function() { return receiveNbhdPolygons; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "postCoords", function() { return postCoords; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "postTime", function() { return postTime; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "postBorough", function() { return postBorough; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "postBoroughPolygon", function() { return postBoroughPolygon; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "postNbhdPolygons", function() { return postNbhdPolygons; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fetchCoords", function() { return fetchCoords; });
 var RECEIVE_COORDS = 'RECEIVE_COORDS';
+var RECEIVE_TIME = 'RECEIVE_TIME';
+var RECEIVE_BOROUGH = 'RECEIVE_BOROUGH'; // export const RECEIVE_SUBWAY_STOPS = 'RECEIVE_SUBWAY_STOPS';
+
+var RECEIVE_BOROUGH_POLYGON = 'RECEIVE_BOROUGH_POLYGON';
+var RECEIVE_NBHD_POLYGONS = 'RECEIVE_NBHD_POLYGONS';
 var receiveCoords = function receiveCoords(coords) {
   return {
     type: RECEIVE_COORDS,
     coords: coords
   };
 };
-var fetchCoords = function fetchCoords() {
-  return function (dispatch) {
-    dispatch(receiveCoords());
+var receiveTime = function receiveTime(time) {
+  return {
+    type: RECEIVE_TIME,
+    time: time
+  };
+};
+var receiveBorough = function receiveBorough(borough) {
+  return {
+    type: RECEIVE_BOROUGH,
+    borough: borough
+  };
+}; //
+// export const receiveSubwayStops = (subwayStops) => ({
+//   type: RECEIVE_SUBWAY_STOPS,
+//   subwayStops: subwayStops
+// })
+
+var receiveBoroughPolygon = function receiveBoroughPolygon(boroughPolygon, time, subwayStops) {
+  return {
+    type: RECEIVE_BOROUGH_POLYGON,
+    boroughPolygon: boroughPolygon,
+    time: time,
+    subwayStops: subwayStops
+  };
+};
+var receiveNbhdPolygons = function receiveNbhdPolygons(nbhdPolygons, time, subwayStops) {
+  return {
+    type: RECEIVE_NBHD_POLYGONS,
+    nbhdPolygons: nbhdPolygons,
+    time: time,
+    subwayStops: subwayStops
   };
 };
 var postCoords = function postCoords(coords) {
   return function (dispatch) {
     dispatch(receiveCoords(coords));
+  };
+};
+var postTime = function postTime(time) {
+  return function (dispatch) {
+    dispatch(receiveTime(time));
+  };
+};
+var postBorough = function postBorough(borough) {
+  return function (dispatch) {
+    dispatch(receiveBorough(borough));
+  };
+};
+var postBoroughPolygon = function postBoroughPolygon(boroughPolygon, time, subwayStops) {
+  return function (dispatch) {
+    dispatch(receiveBoroughPolygon(boroughPolygon, time, subwayStops));
+  };
+};
+var postNbhdPolygons = function postNbhdPolygons(nbhdPolygon, time, subwayStops) {
+  return function (dispatch) {
+    dispatch(receiveBoroughPolygon(nbhdPolygon, time, subwayStops));
+  };
+};
+var fetchCoords = function fetchCoords() {
+  return function (dispatch) {
+    dispatch(receiveCoords());
   };
 };
 
@@ -52198,7 +52073,12 @@ __webpack_require__.r(__webpack_exports__);
 document.addEventListener("DOMContentLoaded", function () {
   var preloadedState = {
     map: {
-      workplace: null
+      workplace: null,
+      time: null,
+      subwayStops: [],
+      nbhdPolygons: {},
+      boroughPolygon: [],
+      borough: 'Brooklyn'
     }
   };
   var store = Object(_store_store__WEBPACK_IMPORTED_MODULE_3__["default"])(preloadedState);
@@ -52272,7 +52152,7 @@ function (_React$Component) {
       boroughPolygons: [],
       subwayStops: [],
       workMarker: "",
-      targetTime: ""
+      time: ""
     };
     _this.clickListener = _this.clickListener.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
@@ -52284,15 +52164,11 @@ function (_React$Component) {
   }, {
     key: "componentDidUpdate",
     value: function componentDidUpdate(prevProps) {
-      if (this.props.polygon !== prevProps.polygon) {
+      if (this.props !== prevProps) {
         this.setState({
-          boroughPolygons: this.props.polygon,
-          targetTime: this.props.targetTime
-        });
-      } else if (this.props.subwayStops !== prevProps.subwayStops) {
-        this.setState({
+          boroughPolygons: this.props.boroughPolygon,
           subwayStops: this.props.subwayStops,
-          targetTime: this.props.targetTime
+          time: this.props.time
         });
       }
     }
@@ -52325,10 +52201,10 @@ function (_React$Component) {
         boundaries: this.state.boroughPolygons
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_markers__WEBPACK_IMPORTED_MODULE_5__["default"], {
         coords: this.state.subwayStops,
-        targetTime: this.props.targetTime
+        time: this.props.time
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_circles__WEBPACK_IMPORTED_MODULE_8__["default"], {
         subwayStops: this.state.subwayStops,
-        targetTime: this.props.targetTime
+        time: this.props.time
       }));
     }
   }]);
@@ -52357,6 +52233,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+var mapStateToProps = function mapStateToProps(state, ownProps) {
+  return {
+    workplace: state.map.workplace,
+    time: state.map.time,
+    subwayStops: state.map.subwayStops,
+    boroughPolygon: state.map.boroughPolygon,
+    nbhdPolygons: state.map.nbhdPolygons
+  };
+};
+
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
     postCoords: function postCoords(coords) {
@@ -52365,7 +52251,7 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   };
 };
 
-/* harmony default export */ __webpack_exports__["default"] = (Object(react_redux__WEBPACK_IMPORTED_MODULE_0__["connect"])(null, mapDispatchToProps)(_commute_map__WEBPACK_IMPORTED_MODULE_2__["default"]));
+/* harmony default export */ __webpack_exports__["default"] = (Object(react_redux__WEBPACK_IMPORTED_MODULE_0__["connect"])(mapStateToProps, mapDispatchToProps)(_commute_map__WEBPACK_IMPORTED_MODULE_2__["default"]));
 
 /***/ }),
 
@@ -52416,25 +52302,24 @@ var CommuteTable = function CommuteTable(_ref) {
 
 /***/ }),
 
-/***/ "./scripts/home.jsx":
-/*!**************************!*\
-  !*** ./scripts/home.jsx ***!
-  \**************************/
-/*! exports provided: Home, default */
+/***/ "./scripts/forms/borough_form.jsx":
+/*!****************************************!*\
+  !*** ./scripts/forms/borough_form.jsx ***!
+  \****************************************/
+/*! exports provided: BoroughForm, default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(process) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Home", function() { return Home; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BoroughForm", function() { return BoroughForm; });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _util_map_util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./util/map_util */ "./scripts/util/map_util.js");
-/* harmony import */ var _latLngHelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./latLngHelper */ "./scripts/latLngHelper.js");
-/* harmony import */ var _transit_util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./transit_util */ "./scripts/transit_util.js");
-/* harmony import */ var _commute_map_container_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./commute_map_container.js */ "./scripts/commute_map_container.js");
-/* harmony import */ var _commute_table__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./commute_table */ "./scripts/commute_table.jsx");
-/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! google-maps-react */ "./node_modules/google-maps-react/dist/index.js");
-/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(google_maps_react__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _util_map_util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../util/map_util */ "./scripts/util/map_util.js");
+/* harmony import */ var _latLngHelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./../latLngHelper */ "./scripts/latLngHelper.js");
+/* harmony import */ var _transit_util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./../transit_util */ "./scripts/transit_util.js");
+/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! google-maps-react */ "./node_modules/google-maps-react/dist/index.js");
+/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(google_maps_react__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _nbhd_form_container__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./nbhd_form_container */ "./scripts/forms/nbhd_form_container.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
@@ -52461,21 +52346,19 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 
 
 
-
-var Home =
+var BoroughForm =
 /*#__PURE__*/
 function (_React$Component) {
-  _inherits(Home, _React$Component);
+  _inherits(BoroughForm, _React$Component);
 
-  function Home(props) {
+  function BoroughForm(props) {
     var _this;
 
-    _classCallCheck(this, Home);
+    _classCallCheck(this, BoroughForm);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Home).call(this, props));
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(BoroughForm).call(this, props));
     _this.state = {
       boroughPolygon: [],
-      nbhdPolygons: [],
       selectedSubwayStops: [],
       filteredSubwayStops: [],
       time: 30,
@@ -52488,7 +52371,7 @@ function (_React$Component) {
     return _this;
   }
 
-  _createClass(Home, [{
+  _createClass(BoroughForm, [{
     key: "componentDidUpdate",
     value: function componentDidUpdate(prevProps) {
       if (this.props.workplace !== prevProps.workplace) {
@@ -52510,7 +52393,7 @@ function (_React$Component) {
 
       this.cleanUp();
       fetch("https://data.cityofnewyork.us/resource/7t3b-ywvw.json?boro_name=".concat(this.state.borough), {
-        "$$app_token": "".concat(process.env.NYC_KEY)
+        "$$app_token": "".concat("ZZYzXnIc2CjZWoLsruMzmGsac")
       }).then(function (res) {
         return _latLngHelper__WEBPACK_IMPORTED_MODULE_2__["receiveData"](res);
       }).then(function (boundaries) {
@@ -52531,6 +52414,8 @@ function (_React$Component) {
         _transit_util__WEBPACK_IMPORTED_MODULE_3__["fetchCommuteTime"](_this2.state.selectedSubwayStops, _this2.state.workplace, _this2.state.time, _this2.state.borough).then(function (locations) {
           _this2.setState({
             filteredSubwayStops: locations
+          }, function () {
+            _this2.props.postBoroughPolygon(_this2.state.boroughPolygon, _this2.state.time, _this2.state.filteredSubwayStops);
           });
         });
       });
@@ -52549,21 +52434,19 @@ function (_React$Component) {
       var _this3 = this;
 
       return function (e) {
-        _this3.setState(_defineProperty({}, field, e.currentTarget.value));
+        _this3.setState(_defineProperty({}, field, e.currentTarget.value), function () {
+          if (field === 'time') {
+            _this3.props.postTime(_this3.state.time);
+          } else if (field === 'borough') {
+            _this3.props.postBorough(_this3.state.borough);
+          }
+        });
       };
     }
   }, {
     key: "render",
     value: function render() {
-      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        id: "master-container"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("main", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        id: "map-container"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_commute_map_container_js__WEBPACK_IMPORTED_MODULE_4__["default"], {
-        polygon: this.state.boroughPolygon,
-        subwayStops: this.state.filteredSubwayStops,
-        targetTime: this.state.time
-      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
         onSubmit: this.handleSubmit
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Borough"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
         name: "Borough",
@@ -52590,7 +52473,305 @@ function (_React$Component) {
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
         type: "submit",
         value: "find-stops"
-      }, "Find stops"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("aside", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_commute_table__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      }, "Find stops by boro")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_nbhd_form_container__WEBPACK_IMPORTED_MODULE_5__["default"], null));
+    }
+  }]);
+
+  return BoroughForm;
+}(react__WEBPACK_IMPORTED_MODULE_0___default.a.Component);
+/* harmony default export */ __webpack_exports__["default"] = (Object(google_maps_react__WEBPACK_IMPORTED_MODULE_4__["GoogleApiWrapper"])({
+  apiKey: "AIzaSyBhrAnIOlsxL-ZYZ0GLYlSvFZ9r0BFYGaI"
+})(BoroughForm));
+
+/***/ }),
+
+/***/ "./scripts/forms/borough_form_container.js":
+/*!*************************************************!*\
+  !*** ./scripts/forms/borough_form_container.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react-redux */ "./node_modules/react-redux/es/index.js");
+/* harmony import */ var _actions_map_actions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../actions/map_actions */ "./scripts/actions/map_actions.js");
+/* harmony import */ var _borough_form__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./borough_form */ "./scripts/forms/borough_form.jsx");
+
+
+
+
+var mapStateToProps = function mapStateToProps(state, ownProps) {
+  return {
+    workplace: state.map.workplace
+  };
+};
+
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    fetchCoords: function fetchCoords() {
+      return dispatch(Object(_actions_map_actions__WEBPACK_IMPORTED_MODULE_1__["fetchCoords"])());
+    },
+    postBoroughPolygon: function postBoroughPolygon(boroughPolygon, time, subwayStops) {
+      return dispatch(Object(_actions_map_actions__WEBPACK_IMPORTED_MODULE_1__["postBoroughPolygon"])(boroughPolygon, time, subwayStops));
+    },
+    postTime: function postTime(time) {
+      return dispatch(Object(_actions_map_actions__WEBPACK_IMPORTED_MODULE_1__["postTime"])(time));
+    },
+    postBorough: function postBorough(borough) {
+      return dispatch(Object(_actions_map_actions__WEBPACK_IMPORTED_MODULE_1__["postBorough"])(borough));
+    }
+  };
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (Object(react_redux__WEBPACK_IMPORTED_MODULE_0__["connect"])(mapStateToProps, mapDispatchToProps)(_borough_form__WEBPACK_IMPORTED_MODULE_2__["default"]));
+
+/***/ }),
+
+/***/ "./scripts/forms/nbhd_form.jsx":
+/*!*************************************!*\
+  !*** ./scripts/forms/nbhd_form.jsx ***!
+  \*************************************/
+/*! exports provided: NbhdForm, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NbhdForm", function() { return NbhdForm; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _latLngHelper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../latLngHelper */ "./scripts/latLngHelper.js");
+/* harmony import */ var _transit_util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./../transit_util */ "./scripts/transit_util.js");
+/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! google-maps-react */ "./node_modules/google-maps-react/dist/index.js");
+/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(google_maps_react__WEBPACK_IMPORTED_MODULE_3__);
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+
+
+
+
+var NbhdForm =
+/*#__PURE__*/
+function (_React$Component) {
+  _inherits(NbhdForm, _React$Component);
+
+  function NbhdForm(props) {
+    var _this;
+
+    _classCallCheck(this, NbhdForm);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(NbhdForm).call(this, props));
+    _this.state = {
+      borough: 'Brooklyn',
+      ntaNames: {
+        Brooklyn: [],
+        Queens: [],
+        Manhattan: [],
+        Bronx: []
+      },
+      selectedNtas: []
+    };
+    _this.updateField = _this.updateField.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    return _this;
+  }
+
+  _createClass(NbhdForm, [{
+    key: "componentDidUpdate",
+    value: function componentDidUpdate(prevProps) {
+      if (this.props.borough !== prevProps.borough) {
+        this.setState({
+          borough: this.props.borough
+        });
+      }
+    }
+  }, {
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      var _this2 = this;
+
+      if (this.state.ntaNames.Brooklyn.length === 0) {
+        fetch("https://data.cityofnewyork.us/resource/q2z5-ai38.json?", {
+          "$$app_token": "".concat("ZZYzXnIc2CjZWoLsruMzmGsac")
+        }).then(function (res) {
+          return _latLngHelper__WEBPACK_IMPORTED_MODULE_1__["receiveData"](res);
+        }).then(function (res) {
+          var output = {
+            Brooklyn: [],
+            Queens: [],
+            Manhattan: [],
+            Bronx: []
+          };
+          res.forEach(function (nta) {
+            if (nta.boro_name !== 'Staten Island') {
+              output[nta.boro_name].push(nta.ntaname);
+            }
+          });
+
+          _this2.setState({
+            ntaNames: output
+          }, function () {
+            console.log(_this2.state);
+          });
+        });
+      }
+    }
+  }, {
+    key: "updateField",
+    value: function updateField(e) {
+      var stateCopy = this.state.selectedNtas;
+      stateCopy.push(e.currentTarget.value);
+      this.setState({
+        selectedNtas: stateCopy
+      });
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("form", {
+        onSubmit: this.handleSubmit
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
+        name: "nta",
+        multiple: true,
+        value: this.state.selectedNtas,
+        onChange: this.updateField
+      }, this.state.ntaNames[this.state.borough].map(function (nta, idx) {
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+          value: nta,
+          key: idx
+        }, nta);
+      })), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        type: "submit",
+        value: "find-stops"
+      }, "Find stops by neighborhood"));
+    }
+  }]);
+
+  return NbhdForm;
+}(react__WEBPACK_IMPORTED_MODULE_0___default.a.Component);
+/* harmony default export */ __webpack_exports__["default"] = (Object(google_maps_react__WEBPACK_IMPORTED_MODULE_3__["GoogleApiWrapper"])({
+  apiKey: "AIzaSyBhrAnIOlsxL-ZYZ0GLYlSvFZ9r0BFYGaI"
+})(NbhdForm));
+
+/***/ }),
+
+/***/ "./scripts/forms/nbhd_form_container.js":
+/*!**********************************************!*\
+  !*** ./scripts/forms/nbhd_form_container.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react-redux */ "./node_modules/react-redux/es/index.js");
+/* harmony import */ var _nbhd_form__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./nbhd_form */ "./scripts/forms/nbhd_form.jsx");
+ // import { } from './../actions/map_actions';
+
+
+
+var mapStateToProps = function mapStateToProps(state, ownProps) {
+  return {
+    borough: state.map.borough
+  };
+}; // const mapDispatchToProps = (dispatch) => {
+//   return {
+//     fetchCoords: () => dispatch(fetchCoords()),
+//     postBoroughPolygon: (boroughPolygon, time, subwayStops) => dispatch(postBoroughPolygon(boroughPolygon, time, subwayStops)),
+//     postTime: (time) => dispatch(postTime(time)),
+//     postBorough: (borough) => dispatch(postBorough(borough)),
+//   };
+// };
+
+
+/* harmony default export */ __webpack_exports__["default"] = (Object(react_redux__WEBPACK_IMPORTED_MODULE_0__["connect"])(mapStateToProps, null)(_nbhd_form__WEBPACK_IMPORTED_MODULE_1__["default"]));
+
+/***/ }),
+
+/***/ "./scripts/home.jsx":
+/*!**************************!*\
+  !*** ./scripts/home.jsx ***!
+  \**************************/
+/*! exports provided: Home, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Home", function() { return Home; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _util_map_util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./util/map_util */ "./scripts/util/map_util.js");
+/* harmony import */ var _latLngHelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./latLngHelper */ "./scripts/latLngHelper.js");
+/* harmony import */ var _transit_util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./transit_util */ "./scripts/transit_util.js");
+/* harmony import */ var _commute_map_container_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./commute_map_container.js */ "./scripts/commute_map_container.js");
+/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! google-maps-react */ "./node_modules/google-maps-react/dist/index.js");
+/* harmony import */ var google_maps_react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(google_maps_react__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _commute_table__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./commute_table */ "./scripts/commute_table.jsx");
+/* harmony import */ var _forms_borough_form_container__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./forms/borough_form_container */ "./scripts/forms/borough_form_container.js");
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+
+
+
+
+
+
+
+
+var Home =
+/*#__PURE__*/
+function (_React$Component) {
+  _inherits(Home, _React$Component);
+
+  function Home(props) {
+    var _this;
+
+    _classCallCheck(this, Home);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Home).call(this, props));
+    _this.state = {};
+    return _this;
+  }
+
+  _createClass(Home, [{
+    key: "render",
+    value: function render() {
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: "master-container"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("main", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: "map-container"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_commute_map_container_js__WEBPACK_IMPORTED_MODULE_4__["default"], null)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_forms_borough_form_container__WEBPACK_IMPORTED_MODULE_7__["default"], null)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("aside", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_commute_table__WEBPACK_IMPORTED_MODULE_6__["default"], {
         transitData: this.state.data
       })));
     }
@@ -52598,10 +52779,9 @@ function (_React$Component) {
 
   return Home;
 }(react__WEBPACK_IMPORTED_MODULE_0___default.a.Component);
-/* harmony default export */ __webpack_exports__["default"] = (Object(google_maps_react__WEBPACK_IMPORTED_MODULE_6__["GoogleApiWrapper"])({
+/* harmony default export */ __webpack_exports__["default"] = (Object(google_maps_react__WEBPACK_IMPORTED_MODULE_5__["GoogleApiWrapper"])({
   apiKey: "AIzaSyBhrAnIOlsxL-ZYZ0GLYlSvFZ9r0BFYGaI"
 })(Home));
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/process/browser.js */ "./node_modules/process/browser.js")))
 
 /***/ }),
 
@@ -52802,11 +52982,11 @@ __webpack_require__.r(__webpack_exports__);
 
 var Circles = function Circles(_ref) {
   var subwayStops = _ref.subwayStops,
-      targetTime = _ref.targetTime,
+      time = _ref.time,
       google = _ref.google,
       map = _ref.map,
       mapCenter = _ref.mapCenter;
-  var circleArr = _util_circles_util__WEBPACK_IMPORTED_MODULE_4__["genCircles"](subwayStops, targetTime);
+  var circleArr = _util_circles_util__WEBPACK_IMPORTED_MODULE_4__["genCircles"](subwayStops, time);
   return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["Polygon"], {
     google: google,
     map: map,
@@ -52846,12 +53026,12 @@ __webpack_require__.r(__webpack_exports__);
 
 var Markers = function Markers(_ref) {
   var coords = _ref.coords,
-      targetTime = _ref.targetTime,
+      time = _ref.time,
       google = _ref.google,
       map = _ref.map,
       mapCenter = _ref.mapCenter;
   var filteredCoords = coords.filter(function (coord) {
-    return coord.commuteTime <= targetTime * 60;
+    return coord.commuteTime <= time * 60;
   });
   return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, filteredCoords.map(function (subway, idx) {
     var lngLat = _transit_util__WEBPACK_IMPORTED_MODULE_3__["parseCoords"](subway.lngLat);
@@ -52981,12 +53161,47 @@ __webpack_require__.r(__webpack_exports__);
 var mapsReducer = function mapsReducer() {
   var oldState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   var action = arguments.length > 1 ? arguments[1] : undefined;
+
+  function customizer(objVal, srcVal) {
+    if (Array.isArray(objVal)) {
+      return srcVal;
+    }
+  }
+
   Object.freeze(oldState);
 
   switch (action.type) {
     case _actions_map_actions__WEBPACK_IMPORTED_MODULE_0__["RECEIVE_COORDS"]:
       return Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, oldState, {
         workplace: action.coords
+      });
+
+    case _actions_map_actions__WEBPACK_IMPORTED_MODULE_0__["RECEIVE_TIME"]:
+      return Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, oldState, {
+        time: action.time
+      });
+
+    case _actions_map_actions__WEBPACK_IMPORTED_MODULE_0__["RECEIVE_BOROUGH"]:
+      return Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, oldState, {
+        borough: action.borough
+      });
+
+    case _actions_map_actions__WEBPACK_IMPORTED_MODULE_0__["RECEIVE_BOROUGH_POLYGON"]:
+      var newState = {
+        time: action.time,
+        subwayStops: action.subwayStops,
+        boroughPolygon: action.boroughPolygon,
+        nbhdPolygon: []
+      };
+      var newOldState = Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, oldState);
+      return Object(lodash__WEBPACK_IMPORTED_MODULE_1__["mergeWith"])(newOldState, newState, customizer);
+
+    case _actions_map_actions__WEBPACK_IMPORTED_MODULE_0__["RECEIVE_NBHD_POLYGONS"]:
+      return Object(lodash__WEBPACK_IMPORTED_MODULE_1__["mergeWith"])({}, oldState, {
+        time: action.time,
+        subwayStops: action.subwayStops,
+        nbhdPolygon: action.nbhdPolygon,
+        boroughPolygon: []
       });
 
     default:

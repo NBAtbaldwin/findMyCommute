@@ -4,8 +4,8 @@ import * as LatLngUtil from './../latLngHelper';
 import * as TransitUtil from './../transit_util';
 import * as CircleUtil from './../util/circles_util';
 
-export const Circles = ({subwayStops, targetTime, google, map, mapCenter}) => {
-  let circleArr = CircleUtil.genCircles(subwayStops, targetTime);
+export const Circles = ({subwayStops, time, google, map, mapCenter}) => {
+  let circleArr = CircleUtil.genCircles(subwayStops, time);
   return (
     <Polygon
       google={google}

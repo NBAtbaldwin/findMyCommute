@@ -15,7 +15,7 @@ export class CommuteMap extends React.Component {
       boroughPolygons: [],
       subwayStops: [],
       workMarker: "",
-      targetTime: "",
+      time: "",
     }
     this.clickListener = this.clickListener.bind(this);
   }
@@ -25,15 +25,11 @@ export class CommuteMap extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.polygon !== prevProps.polygon) {
+    if (this.props !== prevProps) {
       this.setState({
-        boroughPolygons: this.props.polygon,
-        targetTime: this.props.targetTime,
-      })
-    } else if (this.props.subwayStops !== prevProps.subwayStops) {
-      this.setState({
+        boroughPolygons: this.props.boroughPolygon,
         subwayStops: this.props.subwayStops,
-        targetTime: this.props.targetTime,
+        time: this.props.time,
       })
     }
   }
@@ -58,8 +54,8 @@ export class CommuteMap extends React.Component {
         >
         <WorkMarker coords={this.state.workMarker} />
         <Polygons boundaries={this.state.boroughPolygons} />
-        <Markers coords={this.state.subwayStops} targetTime={this.props.targetTime} />
-        <Circles subwayStops={this.state.subwayStops} targetTime={this.props.targetTime} />
+        <Markers coords={this.state.subwayStops} time={this.props.time} />
+        <Circles subwayStops={this.state.subwayStops} time={this.props.time} />
       </Map>
     )
   }

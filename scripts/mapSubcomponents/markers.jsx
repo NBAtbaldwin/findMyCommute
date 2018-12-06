@@ -3,9 +3,9 @@ import {Map, Marker, GoogleApiWrapper} from 'google-maps-react';
 import * as LatLngUtil from './../latLngHelper';
 import * as TransitUtil from './../transit_util';
 
-export const Markers = ({coords, targetTime, google, map, mapCenter}) => {
+export const Markers = ({coords, time, google, map, mapCenter}) => {
   const filteredCoords = coords.filter(coord => {
-    return coord.commuteTime <= targetTime * 60
+    return coord.commuteTime <= time * 60
   })
   return(
     <>
