@@ -26,6 +26,10 @@ main, aside {
   align-items: center;
 }
 
+main > div > div > div:first-child {
+  position: static !important;
+}
+
 #map-container {
   height: 100%;
   width: 100%;
