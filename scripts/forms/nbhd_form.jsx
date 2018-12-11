@@ -10,16 +10,32 @@ export class NbhdForm extends React.Component {
       borough: 'Brooklyn',
       ntaNames: { Brooklyn: [], Queens: [], Manhattan: [], Bronx: [] },
       selectedNtas: [],
+      subwayStops: [],
+      filteredSubwayStops: [],
+      nbhdPolygons: [],
     }
     this.updateField = this.updateField.bind(this);
+    this.cleanUp = this.cleanUp.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.borough !== prevProps.borough) {
       this.setState({
         borough: this.props.borough,
+        selectedNtas: [],
+        subwayStops: [],
+        filteredSubwayStops: [],
+        nbhdPolygons: [],
       })
     }
+  }
+
+  cleanUp() {
+    this.setState({
+      subwayStops: [],
+      filteredSubwayStops: [],
+    });
   }
 
   componentDidMount() {
@@ -37,17 +53,60 @@ export class NbhdForm extends React.Component {
         });
         this.setState({
           ntaNames: output
-        }, () => {
-          console.log(this.state);
         })
       })
     }
   }
 
   updateField(e) {
-    let stateCopy = this.state.selectedNtas;
-    stateCopy.push(e.currentTarget.value);
-    this.setState({selectedNtas: stateCopy})
+    let stateCopy = Array.from(this.state.selectedNtas);
+    if (stateCopy.includes(e.currentTarget.value)) {
+      stateCopy.splice(stateCopy.indexOf(e.currentTarget.value), 1);
+    } else {
+      stateCopy.push(e.currentTarget.value);
+    }
+    this.setState({selectedNtas: stateCopy}, () => {
+      console.log(this.state)
+    })
+  }
+
+  handleSubmit(e) {
+    e.preventDefault();
+    this.cleanUp();
+    if (this.state.selectedNtas.length < 1) return;
+    const qString = TransitUtil.nbhdQueryString(this.state.selectedNtas);
+    fetch(`https://data.cityofnewyork.us/resource/q2z5-ai38.json?$where=ntaname%20in(${qString})`, {
+      "$$app_token": `${process.env.NYC_KEY}`
+    })
+    .then(res => LatLngUtil.receiveData(res))
+    .then(ntas => {
+      fetch('https://data.cityofnewyork.us/api/views/kk4q-3rt2/rows.json', {
+        "$$app_token": `${process.env.NYC_KEY}`
+      })
+      .then(res => LatLngUtil.receiveData(res))
+      .then(subwayStops => {
+        let nbhdPolygons = [];
+        ntas.forEach((nta, idx) => {
+          nbhdPolygons.push(LatLngUtil.createPolgygon(nta));
+        });
+        this.setState({nbhdPolygons: nbhdPolygons});
+        LatLngUtil.createNbhdStops(subwayStops, this.state.subwayStops, nbhdPolygons);
+      })
+      .then(() => {
+        // debugger;
+        TransitUtil.fetchCommuteTime(this.state.subwayStops, this.props.workplace, this.props.time, this.state.borough)
+        .then(locations => {
+          // debugger;
+          this.setState({
+            filteredSubwayStops: locations,
+          }, () => {
+            // debugger;
+            this.props.postNbhdPolygons(this.state.nbhdPolygons, this.props.time, this.state.filteredSubwayStops)
+          });
+        })
+      })
+    })
+
   }
 
   render() {

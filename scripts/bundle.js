@@ -52038,9 +52038,9 @@ var postBoroughPolygon = function postBoroughPolygon(boroughPolygon, time, subwa
     dispatch(receiveBoroughPolygon(boroughPolygon, time, subwayStops));
   };
 };
-var postNbhdPolygons = function postNbhdPolygons(nbhdPolygon, time, subwayStops) {
+var postNbhdPolygons = function postNbhdPolygons(nbhdPolygons, time, subwayStops) {
   return function (dispatch) {
-    dispatch(receiveBoroughPolygon(nbhdPolygon, time, subwayStops));
+    dispatch(receiveNbhdPolygons(nbhdPolygons, time, subwayStops));
   };
 };
 var fetchCoords = function fetchCoords() {
@@ -52074,7 +52074,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var preloadedState = {
     map: {
       workplace: null,
-      time: null,
+      time: 30,
       subwayStops: [],
       nbhdPolygons: {},
       boroughPolygon: [],
@@ -52197,8 +52197,6 @@ function (_React$Component) {
         }
       }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_work_marker__WEBPACK_IMPORTED_MODULE_7__["default"], {
         coords: this.state.workMarker
-      }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_polygons__WEBPACK_IMPORTED_MODULE_6__["default"], {
-        boundaries: this.state.boroughPolygons
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_mapSubcomponents_markers__WEBPACK_IMPORTED_MODULE_5__["default"], {
         coords: this.state.subwayStops,
         time: this.props.time
@@ -52213,7 +52211,7 @@ function (_React$Component) {
 }(react__WEBPACK_IMPORTED_MODULE_0___default.a.Component);
 /* harmony default export */ __webpack_exports__["default"] = (Object(google_maps_react__WEBPACK_IMPORTED_MODULE_1__["GoogleApiWrapper"])({
   apiKey: "AIzaSyBhrAnIOlsxL-ZYZ0GLYlSvFZ9r0BFYGaI"
-})(CommuteMap));
+})(CommuteMap)); // <Polygons boundaries={this.state.boroughPolygons} />
 
 /***/ }),
 
@@ -52585,9 +52583,14 @@ function (_React$Component) {
         Manhattan: [],
         Bronx: []
       },
-      selectedNtas: []
+      selectedNtas: [],
+      subwayStops: [],
+      filteredSubwayStops: [],
+      nbhdPolygons: []
     };
     _this.updateField = _this.updateField.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.cleanUp = _this.cleanUp.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.handleSubmit = _this.handleSubmit.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
   }
 
@@ -52596,9 +52599,21 @@ function (_React$Component) {
     value: function componentDidUpdate(prevProps) {
       if (this.props.borough !== prevProps.borough) {
         this.setState({
-          borough: this.props.borough
+          borough: this.props.borough,
+          selectedNtas: [],
+          subwayStops: [],
+          filteredSubwayStops: [],
+          nbhdPolygons: []
         });
       }
+    }
+  }, {
+    key: "cleanUp",
+    value: function cleanUp() {
+      this.setState({
+        subwayStops: [],
+        filteredSubwayStops: []
+      });
     }
   }, {
     key: "componentDidMount",
@@ -52625,8 +52640,6 @@ function (_React$Component) {
 
           _this2.setState({
             ntaNames: output
-          }, function () {
-            console.log(_this2.state);
           });
         });
       }
@@ -52634,10 +52647,63 @@ function (_React$Component) {
   }, {
     key: "updateField",
     value: function updateField(e) {
-      var stateCopy = this.state.selectedNtas;
-      stateCopy.push(e.currentTarget.value);
+      var _this3 = this;
+
+      var stateCopy = Array.from(this.state.selectedNtas);
+
+      if (stateCopy.includes(e.currentTarget.value)) {
+        stateCopy.splice(stateCopy.indexOf(e.currentTarget.value), 1);
+      } else {
+        stateCopy.push(e.currentTarget.value);
+      }
+
       this.setState({
         selectedNtas: stateCopy
+      }, function () {
+        console.log(_this3.state);
+      });
+    }
+  }, {
+    key: "handleSubmit",
+    value: function handleSubmit(e) {
+      var _this4 = this;
+
+      e.preventDefault();
+      this.cleanUp();
+      if (this.state.selectedNtas.length < 1) return;
+      var qString = _transit_util__WEBPACK_IMPORTED_MODULE_2__["nbhdQueryString"](this.state.selectedNtas);
+      fetch("https://data.cityofnewyork.us/resource/q2z5-ai38.json?$where=ntaname%20in(".concat(qString, ")"), {
+        "$$app_token": "".concat("ZZYzXnIc2CjZWoLsruMzmGsac")
+      }).then(function (res) {
+        return _latLngHelper__WEBPACK_IMPORTED_MODULE_1__["receiveData"](res);
+      }).then(function (ntas) {
+        fetch('https://data.cityofnewyork.us/api/views/kk4q-3rt2/rows.json', {
+          "$$app_token": "".concat("ZZYzXnIc2CjZWoLsruMzmGsac")
+        }).then(function (res) {
+          return _latLngHelper__WEBPACK_IMPORTED_MODULE_1__["receiveData"](res);
+        }).then(function (subwayStops) {
+          var nbhdPolygons = [];
+          ntas.forEach(function (nta, idx) {
+            nbhdPolygons.push(_latLngHelper__WEBPACK_IMPORTED_MODULE_1__["createPolgygon"](nta));
+          });
+
+          _this4.setState({
+            nbhdPolygons: nbhdPolygons
+          });
+
+          _latLngHelper__WEBPACK_IMPORTED_MODULE_1__["createNbhdStops"](subwayStops, _this4.state.subwayStops, nbhdPolygons);
+        }).then(function () {
+          // debugger;
+          _transit_util__WEBPACK_IMPORTED_MODULE_2__["fetchCommuteTime"](_this4.state.subwayStops, _this4.props.workplace, _this4.props.time, _this4.state.borough).then(function (locations) {
+            // debugger;
+            _this4.setState({
+              filteredSubwayStops: locations
+            }, function () {
+              // debugger;
+              _this4.props.postNbhdPolygons(_this4.state.nbhdPolygons, _this4.props.time, _this4.state.filteredSubwayStops);
+            });
+          });
+        });
       });
     }
   }, {
@@ -52680,26 +52746,29 @@ function (_React$Component) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react-redux */ "./node_modules/react-redux/es/index.js");
-/* harmony import */ var _nbhd_form__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./nbhd_form */ "./scripts/forms/nbhd_form.jsx");
- // import { } from './../actions/map_actions';
+/* harmony import */ var _actions_map_actions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./../actions/map_actions */ "./scripts/actions/map_actions.js");
+/* harmony import */ var _nbhd_form__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./nbhd_form */ "./scripts/forms/nbhd_form.jsx");
+
 
 
 
 var mapStateToProps = function mapStateToProps(state, ownProps) {
   return {
-    borough: state.map.borough
+    borough: state.map.borough,
+    workplace: state.map.workplace,
+    time: state.map.time
   };
-}; // const mapDispatchToProps = (dispatch) => {
-//   return {
-//     fetchCoords: () => dispatch(fetchCoords()),
-//     postBoroughPolygon: (boroughPolygon, time, subwayStops) => dispatch(postBoroughPolygon(boroughPolygon, time, subwayStops)),
-//     postTime: (time) => dispatch(postTime(time)),
-//     postBorough: (borough) => dispatch(postBorough(borough)),
-//   };
-// };
+};
 
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    postNbhdPolygons: function postNbhdPolygons(nbhdPolygon, time, subwayStops) {
+      return dispatch(Object(_actions_map_actions__WEBPACK_IMPORTED_MODULE_1__["postNbhdPolygons"])(nbhdPolygon, time, subwayStops));
+    }
+  };
+};
 
-/* harmony default export */ __webpack_exports__["default"] = (Object(react_redux__WEBPACK_IMPORTED_MODULE_0__["connect"])(mapStateToProps, null)(_nbhd_form__WEBPACK_IMPORTED_MODULE_1__["default"]));
+/* harmony default export */ __webpack_exports__["default"] = (Object(react_redux__WEBPACK_IMPORTED_MODULE_0__["connect"])(mapStateToProps, mapDispatchToProps)(_nbhd_form__WEBPACK_IMPORTED_MODULE_2__["default"]));
 
 /***/ }),
 
@@ -52834,7 +52903,7 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 /*!*********************************!*\
   !*** ./scripts/latLngHelper.js ***!
   \*********************************/
-/*! exports provided: latLngObj, toLatLng, createPolgygon, receiveData, createBoroughStops */
+/*! exports provided: latLngObj, toLatLng, createPolgygon, receiveData, createBoroughStops, createNbhdStops */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -52844,6 +52913,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createPolgygon", function() { return createPolgygon; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "receiveData", function() { return receiveData; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createBoroughStops", function() { return createBoroughStops; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createNbhdStops", function() { return createNbhdStops; });
 /* harmony import */ var _transit_util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./transit_util */ "./scripts/transit_util.js");
 
 var latLngObj = function latLngObj(arr) {
@@ -52882,7 +52952,8 @@ var tempPolygon = function tempPolygon(path) {
 };
 
 var createPolgygon = function createPolgygon(geoJ, borough, container) {
-  return toLatLng(geoJ[0].the_geom.coordinates);
+  if (Array.isArray(geoJ)) return toLatLng(geoJ[0].the_geom.coordinates);
+  return toLatLng(geoJ.the_geom.coordinates);
 };
 var receiveData = function receiveData(res) {
   return res.json();
@@ -52922,6 +52993,47 @@ var createBoroughStops = function createBoroughStops(res, selectedSubwayStops, b
   var stopsArr = res.data;
   stopsArr.forEach(function (stop) {
     if (Object(_transit_util__WEBPACK_IMPORTED_MODULE_0__["locationFilter"])(polygon, stop, borough)) {
+      var coords = stop[11].slice(6);
+      var stopObj = {};
+      stop.forEach(function (listItem, idx) {
+        switch (idx) {
+          case 0:
+            stopObj.id = listItem;
+            break;
+
+          case 10:
+            stopObj.subwayStop = listItem;
+            break;
+
+          case 11:
+            stopObj.lngLat = coords;
+            break;
+
+          case 12:
+            stopObj.trains = listItem;
+            break;
+
+          case 13:
+            stopObj.info = listItem;
+            break;
+
+          default:
+            break;
+        }
+      });
+      selectedSubwayStops.push(stopObj);
+    }
+  });
+  return selectedSubwayStops;
+};
+var createNbhdStops = function createNbhdStops(res, selectedSubwayStops, ntas) {
+  var polygons = [];
+  ntas.forEach(function (nta, idx) {
+    polygons.push(tempPolygon(nta));
+  });
+  var stopsArr = res.data;
+  stopsArr.forEach(function (stop) {
+    if (Object(_transit_util__WEBPACK_IMPORTED_MODULE_0__["nbhdFilter"])(polygons, stop)) {
       var coords = stop[11].slice(6);
       var stopObj = {};
       stop.forEach(function (listItem, idx) {
@@ -53169,6 +53281,7 @@ var mapsReducer = function mapsReducer() {
   }
 
   Object.freeze(oldState);
+  var newState, newOldState;
 
   switch (action.type) {
     case _actions_map_actions__WEBPACK_IMPORTED_MODULE_0__["RECEIVE_COORDS"]:
@@ -53187,22 +53300,25 @@ var mapsReducer = function mapsReducer() {
       });
 
     case _actions_map_actions__WEBPACK_IMPORTED_MODULE_0__["RECEIVE_BOROUGH_POLYGON"]:
-      var newState = {
+      newState = {
         time: action.time,
         subwayStops: action.subwayStops,
         boroughPolygon: action.boroughPolygon,
-        nbhdPolygon: []
+        nbhdPolygons: []
       };
-      var newOldState = Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, oldState);
+      newOldState = Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, oldState);
       return Object(lodash__WEBPACK_IMPORTED_MODULE_1__["mergeWith"])(newOldState, newState, customizer);
 
     case _actions_map_actions__WEBPACK_IMPORTED_MODULE_0__["RECEIVE_NBHD_POLYGONS"]:
-      return Object(lodash__WEBPACK_IMPORTED_MODULE_1__["mergeWith"])({}, oldState, {
+      newState = {
         time: action.time,
-        subwayStops: action.subwayStops,
-        nbhdPolygon: action.nbhdPolygon,
         boroughPolygon: []
-      });
+      };
+      newOldState = Object(lodash__WEBPACK_IMPORTED_MODULE_1__["merge"])({}, oldState, newState);
+      return Object(lodash__WEBPACK_IMPORTED_MODULE_1__["mergeWith"])(newOldState, {
+        nbhdPolygons: action.nbhdPolygons,
+        subwayStops: action.subwayStops
+      }, customizer);
 
     default:
       return oldState;
@@ -53293,15 +53409,17 @@ var configureStore = function configureStore() {
 /*!*********************************!*\
   !*** ./scripts/transit_util.js ***!
   \*********************************/
-/*! exports provided: parseCoords, locationFilter, fetchCommuteTime, markersFromLocations */
+/*! exports provided: parseCoords, locationFilter, nbhdFilter, fetchCommuteTime, markersFromLocations, nbhdQueryString */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parseCoords", function() { return parseCoords; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "locationFilter", function() { return locationFilter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nbhdFilter", function() { return nbhdFilter; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fetchCommuteTime", function() { return fetchCommuteTime; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "markersFromLocations", function() { return markersFromLocations; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nbhdQueryString", function() { return nbhdQueryString; });
 /* harmony import */ var _key__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./key */ "./scripts/key.js");
 /* harmony import */ var _key__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_key__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
@@ -53332,6 +53450,15 @@ var parseUrlCoordsLatLng = function parseUrlCoordsLatLng(latLng) {
 var locationFilter = function locationFilter(polygon, data, borough) {
   stop = parseCoords(data[11].slice(6));
   return google.maps.geometry.poly.containsLocation(stop, polygon) ? true : false;
+};
+var nbhdFilter = function nbhdFilter(polygons, data) {
+  stop = parseCoords(data[11].slice(6));
+
+  for (var i = 0; i < polygons.length; i++) {
+    if (google.maps.geometry.poly.containsLocation(stop, polygons[i])) return true;
+  }
+
+  return false;
 }; // export const getCommuteTime = (originHash, destination, service, display, ) => {
 //     service.route({
 //     origin: parseCoords(originHash.brooklyn[0].lngLat),
@@ -53416,6 +53543,14 @@ var markersFromLocations = function markersFromLocations(locations, map, markers
   });
   return markers;
 };
+var nbhdQueryString = function nbhdQueryString(ntas) {
+  var qString = "";
+  ntas.forEach(function (nta, idx) {
+    if (idx > 0) qString += ",%20";
+    qString += "%27".concat(nta, "%27");
+  });
+  return qString;
+}; // %27${}%27,%20%27Bushwick%20South%27,%20%27Bushwick%20North%27
 
 /***/ }),
 

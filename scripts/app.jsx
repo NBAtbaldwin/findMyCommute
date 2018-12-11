@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const preloadedState = {
       map: {
         workplace: null,
-        time: null,
+        time: 30,
         subwayStops: [],
         nbhdPolygons: {},
         boroughPolygon: [],

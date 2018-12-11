@@ -53,7 +53,6 @@ export class CommuteMap extends React.Component {
          }}
         >
         <WorkMarker coords={this.state.workMarker} />
-        <Polygons boundaries={this.state.boroughPolygons} />
         <Markers coords={this.state.subwayStops} time={this.props.time} />
         <Circles subwayStops={this.state.subwayStops} time={this.props.time} />
       </Map>
@@ -64,3 +63,5 @@ export class CommuteMap extends React.Component {
 export default GoogleApiWrapper({
   apiKey: (process.env.GAPI_KEY)
 })(CommuteMap)
+
+// <Polygons boundaries={this.state.boroughPolygons} />

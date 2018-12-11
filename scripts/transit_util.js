@@ -27,6 +27,14 @@ export const locationFilter = (polygon, data, borough) => {
   return google.maps.geometry.poly.containsLocation(stop, polygon) ? true : false;
 }
 
+export const nbhdFilter = (polygons, data) => {
+  stop = parseCoords(data[11].slice(6));
+  for (let i = 0; i < polygons.length; i++) {
+    if (google.maps.geometry.poly.containsLocation(stop, polygons[i])) return true;
+  }
+  return false;
+}
+
 // export const getCommuteTime = (originHash, destination, service, display, ) => {
 //     service.route({
 //     origin: parseCoords(originHash.brooklyn[0].lngLat),
@@ -111,3 +119,14 @@ export const markersFromLocations = (locations, map, markers) => {
   });
   return markers
 }
+
+export const nbhdQueryString = (ntas) => {
+  let qString = "";
+  ntas.forEach((nta, idx) => {
+    if(idx > 0) qString += ",%20";
+    qString += `%27${nta}%27`;
+  });
+  return qString;
+}
+
+// %27${}%27,%20%27Bushwick%20South%27,%20%27Bushwick%20North%27

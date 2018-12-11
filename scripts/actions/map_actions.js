@@ -55,8 +55,8 @@ export const postBoroughPolygon = (boroughPolygon, time, subwayStops) => dispatc
   dispatch(receiveBoroughPolygon(boroughPolygon, time, subwayStops))
 }
 
-export const postNbhdPolygons = (nbhdPolygon, time, subwayStops) => dispatch => {
-  dispatch(receiveBoroughPolygon(nbhdPolygon, time, subwayStops))
+export const postNbhdPolygons = (nbhdPolygons, time, subwayStops) => dispatch => {
+  dispatch(receiveNbhdPolygons(nbhdPolygons, time, subwayStops))
 }
 
 export const fetchCoords = () => dispatch => {

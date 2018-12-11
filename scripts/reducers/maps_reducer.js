@@ -10,6 +10,7 @@ const mapsReducer = (oldState = {}, action) => {
   }
 
   Object.freeze(oldState);
+  let newState, newOldState;
   switch (action.type) {
     case RECEIVE_COORDS:
       return merge({}, oldState, {workplace: action.coords});
@@ -18,11 +19,13 @@ const mapsReducer = (oldState = {}, action) => {
     case RECEIVE_BOROUGH:
       return merge({}, oldState, {borough: action.borough});
     case RECEIVE_BOROUGH_POLYGON:
-      let newState = {time: action.time, subwayStops: action.subwayStops, boroughPolygon: action.boroughPolygon, nbhdPolygon: []}
-      let newOldState = merge({}, oldState)
+      newState = {time: action.time, subwayStops: action.subwayStops, boroughPolygon: action.boroughPolygon, nbhdPolygons: []}
+      newOldState = merge({}, oldState)
       return mergeWith(newOldState, newState, customizer);
     case RECEIVE_NBHD_POLYGONS:
-      return mergeWith({}, oldState, {time: action.time, subwayStops: action.subwayStops, nbhdPolygon: action.nbhdPolygon, boroughPolygon: []});
+      newState = {time: action.time, boroughPolygon: []};
+      newOldState = merge({}, oldState, newState);
+      return mergeWith(newOldState, {nbhdPolygons: action.nbhdPolygons, subwayStops: action.subwayStops}, customizer);
     default:
       return oldState;
   }
